@@ -25,13 +25,19 @@ private:
 	int * myOutputArr;
 	int * myStateNames;
 
+	void elimUnreachableStates();
+
 public:
 	FiniteStateMachine();
 	FiniteStateMachine(int, int, int, int);
 	~FiniteStateMachine();
 
 	void setStateNames(EncodingHeuristic);
+	void minimizeFSM();
 	void genRandomFSM(int);
 	void printFSM();
 	void genVerilog(string);
+
+	//Getters
+	int getNumStates();
 };

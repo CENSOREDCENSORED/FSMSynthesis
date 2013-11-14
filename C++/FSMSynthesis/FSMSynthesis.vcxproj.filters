@@ -24,12 +24,18 @@
     <ClCompile Include="FiniteStateMachine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ErrorDetectionNetwork.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ErrorCorrection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FiniteStateMachine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ErrorDetectionNetwork.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

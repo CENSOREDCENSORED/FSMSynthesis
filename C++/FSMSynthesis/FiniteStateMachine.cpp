@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <queue>
+
 
 FiniteStateMachine::FiniteStateMachine(int numStates, int numInputs, int numOutputs, int initialState)
 {
@@ -34,6 +36,79 @@ FiniteStateMachine::~FiniteStateMachine()
 void FiniteStateMachine::setStateNames(EncodingHeuristic heuristic)
 {
 	//TODO: Implement this
+}
+
+void FiniteStateMachine::minimizeFSM()
+{
+	elimUnreachableStates();
+	//TODO: Implement this
+}
+
+void FiniteStateMachine::elimUnreachableStates()
+{
+	queue<int> queue;
+	queue.push(myInitialState);
+	int * stateVisited = new int[myNumStates];
+	for (int i = 0; i < myNumStates; i++)
+	{
+		stateVisited[i] = 0;
+	}
+
+	int newNumStates = 0;
+	while(!queue.empty())
+	{
+		int state = queue.front();
+		stateVisited[state] = 1;
+		newNumStates = newNumStates + 1;
+		queue.pop();
+		int * FSMRow = &(myNextStateArr[state * myNumInputs]);
+		
+		for (int i = 0; i < myNumInputs; i++)
+		{
+			int nextState = FSMRow[i];
+			if (stateVisited[nextState] == 0){
+				queue.push(nextState); 
+				stateVisited[nextState] = 1;
+			}
+		}
+	}
+
+	int * stateRemapped = new int[myNumStates];
+	int offset = 0;
+	for (int i = 0; i < myNumStates; i++)
+	{
+		if (stateVisited[i] != 0) stateRemapped[i] = i - offset;
+		else offset = offset + 1;
+	}
+
+	int * newNextState = new int[newNumStates * myNumInputs];
+	int * newOutputLogic = new int[newNumStates * myNumInputs];
+
+	offset = 0;
+	for (int i = 0; i < myNumStates; i++)
+	{
+		if (stateVisited[i] != 0)
+		{
+			for (int j = 0; j < myNumInputs; j++)
+			{
+				newNextState[(i - offset) * myNumInputs + j] = stateRemapped[myNextStateArr[i*myNumInputs + j]];
+				newOutputLogic[(i - offset) * myNumInputs + j] = myOutputArr[i*myNumInputs + j];
+			}
+		}
+		else offset++;
+	}
+
+
+	delete myNextStateArr;
+	delete myOutputArr;
+	myNextStateArr = newNextState;
+	myOutputArr = newOutputLogic;
+
+	myNumStates = newNumStates;
+
+	delete stateRemapped;
+	delete stateVisited;
+
 }
 
 void FiniteStateMachine::genRandomFSM(int seed)
@@ -147,13 +222,10 @@ void FiniteStateMachine::genVerilog(string filename)
 		myfile << "[" << index << ":0] ";
 	}
 
-	myfile << "out" << endl;
-
-	myfile << ");" << endl;
-	myfile << endl;
+	myfile << "out," << endl;
 
 	//State declaration
-	myfile << "reg ";
+	myfile << "\toutput reg ";
 
 	if (myNumStates > 2)
 	{
@@ -167,7 +239,12 @@ void FiniteStateMachine::genVerilog(string filename)
 		myfile << "[" << index << ":0] ";
 	}
 
-	myfile << "state;" << endl;
+	myfile << "state" << endl;
+
+	myfile << ");" << endl;
+	myfile << endl;
+
+	
 
 	//synchronous always block declaration
 	myfile << endl;
@@ -215,4 +292,10 @@ void FiniteStateMachine::genVerilog(string filename)
 	myfile << endl;
 	myfile << "endmodule" << endl;
 	myfile.close();
+}
+
+//Getters
+int FiniteStateMachine::getNumStates()
+{
+	return myNumStates;
 }

@@ -1,5 +1,5 @@
 #include "ErrorCorrection.h"
-#include "FiniteStateMachine.h"
+#include "ErrorDetectionNetwork.h"
 #include <stdlib.h>     /* srand, rand */
 #include <stdio.h>
 #include <iostream>
@@ -17,10 +17,13 @@ void main()
 	//ErrorCorrection * ec = new ErrorCorrection();
 	//cout << ec->genHammingCodeParity(1) << endl;
 
-	FiniteStateMachine * FSM = new FiniteStateMachine(100, 5, 4, 0);
+	FiniteStateMachine * FSM = new FiniteStateMachine(100, 4, 4, 3);
 	FSM->genRandomFSM(100);
-	FSM->printFSM();
+	//FSM->printFSM();
+	FSM->minimizeFSM();
+	//FSM->printFSM();
 	FSM->genVerilog("../../Verilog/FSM.v");
 
+	delete FSM;
 	if (seeOutput) while (true){}
 }
