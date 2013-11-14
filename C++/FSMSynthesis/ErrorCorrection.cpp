@@ -1,4 +1,10 @@
 #include "ErrorCorrection.h"
+#include <stdio.h>
+#include <iostream>
+#include <stdlib.h>
+#include <string>
+#include <fstream>
+#include <sstream>
 
 using namespace std;
 
