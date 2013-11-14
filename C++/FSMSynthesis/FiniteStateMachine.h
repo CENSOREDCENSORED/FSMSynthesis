@@ -17,6 +17,7 @@ enum EncodingHeuristic
 class FiniteStateMachine
 {
 private:
+	bool genOutputLogic;
 	int myNumInputs;
 	int myNumStates;
 	int myNumOutputs;
@@ -38,6 +39,8 @@ public:
 	void printFSM();
 	void genVerilog(string);
 
-	//Getters
+	//Getters and setters
 	int getNumStates();
+
+	void setOutputLogic(bool);
 };

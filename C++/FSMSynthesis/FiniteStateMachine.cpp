@@ -9,6 +9,8 @@
 
 FiniteStateMachine::FiniteStateMachine(int numStates, int numInputs, int numOutputs, int initialState)
 {
+	genOutputLogic = false;
+
 	myNumStates = numStates;
 	myNumInputs = numInputs;
 	myNumOutputs = numOutputs;
@@ -83,12 +85,16 @@ void FiniteStateMachine::elimUnreachableStates()
 
 	int * newNextState = new int[newNumStates * myNumInputs];
 	int * newOutputLogic = new int[newNumStates * myNumInputs];
+	int * newStateNames = new int[newNumStates];
 
 	offset = 0;
 	for (int i = 0; i < myNumStates; i++)
 	{
 		if (stateVisited[i] != 0)
 		{
+			
+			newStateNames[i - offset] = stateRemapped[i];
+
 			for (int j = 0; j < myNumInputs; j++)
 			{
 				newNextState[(i - offset) * myNumInputs + j] = stateRemapped[myNextStateArr[i*myNumInputs + j]];
@@ -105,6 +111,12 @@ void FiniteStateMachine::elimUnreachableStates()
 	myOutputArr = newOutputLogic;
 
 	myNumStates = newNumStates;
+	
+	myInitialState = stateRemapped[myInitialState];
+
+	
+	delete myStateNames;
+	myStateNames = newStateNames;
 
 	delete stateRemapped;
 	delete stateVisited;
@@ -205,27 +217,33 @@ void FiniteStateMachine::genVerilog(string filename)
 	}
 
 	myfile << "in," << endl;
-	myfile << "\toutput reg ";
 
+	
 	int outputIndex = 1;
-
-	if (myNumOutputs > 2)
+	if (genOutputLogic)
 	{
-		int numOutputs = myNumOutputs - 1;
-		int index = -1;
-		while (numOutputs != 0) 
+		myfile << "\toutput reg ";
+
+
+		if (myNumOutputs > 2)
 		{
-			numOutputs = numOutputs >> 1;
-			index = index + 1;
+			int numOutputs = myNumOutputs - 1;
+			int index = -1;
+			while (numOutputs != 0) 
+			{
+				numOutputs = numOutputs >> 1;
+				index = index + 1;
+			}
+			outputIndex = index + 1;
+			myfile << "[" << index << ":0] ";
 		}
-		outputIndex = index + 1;
-		myfile << "[" << index << ":0] ";
+
+		myfile << "out," << endl;
 	}
 
-	myfile << "out," << endl;
-
-	//State declaration
+	//Currstate declaration
 	myfile << "\toutput reg ";
+	int stateIndex = 1;
 
 	if (myNumStates > 2)
 	{
@@ -236,10 +254,18 @@ void FiniteStateMachine::genVerilog(string filename)
 			numStates = numStates >> 1;
 			index = index + 1;
 		}
+		stateIndex = index + 1;
 		myfile << "[" << index << ":0] ";
 	}
 
-	myfile << "state" << endl;
+	myfile << "currstate," << endl;
+	
+	//Currstate declaration
+	myfile << "\toutput reg ";
+	
+	myfile << "[" << stateIndex - 1 << ":0] ";
+
+	myfile << "nextstate" << endl;
 
 	myfile << ");" << endl;
 	myfile << endl;
@@ -250,8 +276,9 @@ void FiniteStateMachine::genVerilog(string filename)
 	myfile << endl;
 	myfile << "always @(posedge clock or posedge reset)" << endl;
 	myfile << "begin" << endl;
-	myfile << "\tif (reset) state <= " << myStateNames[myInitialState] << ";" << endl;
-	myfile << "\telse" << endl;
+	myfile << "\tif (reset) currstate <= " << myStateNames[myInitialState] << ";" << endl;
+	myfile << "\telse currstate <= nextstate;" << endl;
+	/*myfile << "\telse" << endl;
 	myfile << "\tbegin" << endl;
 
 	for (int i = 0; i < myNumStates; i++)
@@ -260,11 +287,11 @@ void FiniteStateMachine::genVerilog(string filename)
 		{
 			myfile << "\t\tif (state == " << myStateNames[i] << " && in == " << j << ")" << endl;
 			myfile << "\t\tbegin" << endl;
-			myfile << "\t\t\tstate <= " << myStateNames[myNextStateArr[i * myNumInputs + j]]  << ";" << endl;
 			myfile << "\t\tend" << endl;
 		}
 	}
-	myfile << "\tend" << endl;
+
+	myfile << "\tend" << endl;*/
 
 	myfile << "end" << endl;
 
@@ -272,16 +299,26 @@ void FiniteStateMachine::genVerilog(string filename)
 	myfile << endl;
 	myfile << "always@(*)" << endl;
 	myfile << "begin" << endl;
-	myfile << "\tout <= " << outputIndex << "'b";
-	for (int i = 0; i < outputIndex; i++) myfile << "x";
+	if (genOutputLogic)
+	{
+		myfile << "\tout <= " << outputIndex << "'b";
+		for (int i = 0; i < outputIndex; i++) myfile << "x";
+		myfile << ";" << endl;
+	}
+	myfile << "\tnextstate <= " << stateIndex << "'b";
+	for (int i = 0; i < stateIndex; i++) myfile << "x";
 	myfile << ";" << endl;
 	for (int i = 0; i < myNumStates; i++)
 	{
 		for (int j = 0; j < myNumInputs; j++)
 		{
-			myfile << "\tif (state == " << myStateNames[i] << " && in == " << j << ")" << endl;
+			myfile << "\tif (currstate == " << myStateNames[i] << " && in == " << j << ")" << endl;
 			myfile << "\tbegin" << endl;
-			myfile << "\t\tout <= " << myOutputArr[i * myNumInputs + j]  << ";" << endl;
+			myfile << "\t\tnextstate <= " << myStateNames[myNextStateArr[i * myNumInputs + j]]  << ";" << endl;
+			if (genOutputLogic)
+			{
+				myfile << "\t\tout <= " << myOutputArr[i * myNumInputs + j]  << ";" << endl;
+			}
 			myfile << "\tend" << endl;
 		}
 	}
@@ -294,8 +331,13 @@ void FiniteStateMachine::genVerilog(string filename)
 	myfile.close();
 }
 
-//Getters
+//Getters and Setters
 int FiniteStateMachine::getNumStates()
 {
 	return myNumStates;
+}
+
+void FiniteStateMachine::setOutputLogic(bool val)
+{
+	genOutputLogic = val;
 }

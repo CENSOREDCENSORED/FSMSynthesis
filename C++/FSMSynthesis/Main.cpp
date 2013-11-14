@@ -18,6 +18,7 @@ void main()
 	//cout << ec->genHammingCodeParity(1) << endl;
 
 	FiniteStateMachine * FSM = new FiniteStateMachine(100, 4, 4, 3);
+	//FSM->setOutputLogic(true);
 	FSM->genRandomFSM(100);
 	//FSM->printFSM();
 	FSM->minimizeFSM();
