@@ -45,7 +45,7 @@ void FiniteStateMachine::genRandomFSM(int seed)
 		for (int j = 0; j < myNumInputs; j++)
 		{
 			myNextStateArr[i * myNumInputs + j] = rand() % myNumStates;
-			myOutputArr[i * myNumInputs + j] = rand() % myNumStates;
+			myOutputArr[i * myNumInputs + j] = rand() % myNumOutputs;
 		}
 	}
 }
@@ -130,7 +130,7 @@ void FiniteStateMachine::genVerilog(string filename)
 	}
 
 	myfile << "in," << endl;
-	myfile << "\toutput logic ";
+	myfile << "\toutput reg ";
 
 	int outputIndex = 1;
 
@@ -153,7 +153,7 @@ void FiniteStateMachine::genVerilog(string filename)
 	myfile << endl;
 
 	//State declaration
-	myfile << "logic ";
+	myfile << "reg ";
 
 	if (myNumStates > 2)
 	{
@@ -193,7 +193,7 @@ void FiniteStateMachine::genVerilog(string filename)
 
 	//asynchronous always block declaration
 	myfile << endl;
-	myfile << "always_comb" << endl;
+	myfile << "always@(*)" << endl;
 	myfile << "begin" << endl;
 	myfile << "\tout <= " << outputIndex << "'b";
 	for (int i = 0; i < outputIndex; i++) myfile << "x";

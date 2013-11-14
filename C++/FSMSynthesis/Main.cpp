@@ -17,10 +17,10 @@ void main()
 	//ErrorCorrection * ec = new ErrorCorrection();
 	//cout << ec->genHammingCodeParity(1) << endl;
 
-	FiniteStateMachine * FSM = new FiniteStateMachine(4, 4, 4, 0);
+	FiniteStateMachine * FSM = new FiniteStateMachine(100, 5, 4, 0);
 	FSM->genRandomFSM(100);
 	FSM->printFSM();
-	FSM->genVerilog("../../Verilog/FSM.sv");
+	FSM->genVerilog("../../Verilog/FSM.v");
 
 	if (seeOutput) while (true){}
 }
