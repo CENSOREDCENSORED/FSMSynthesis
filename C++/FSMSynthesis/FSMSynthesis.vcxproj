@@ -69,12 +69,14 @@
     <ClCompile Include="ErrorCorrection.cpp" />
     <ClCompile Include="ErrorDetectionNetwork.cpp" />
     <ClCompile Include="FiniteStateMachine.cpp" />
+    <ClCompile Include="FSMSimulator.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ErrorCorrection.h" />
     <ClInclude Include="ErrorDetectionNetwork.h" />
     <ClInclude Include="FiniteStateMachine.h" />
+    <ClInclude Include="FSMSimulator.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

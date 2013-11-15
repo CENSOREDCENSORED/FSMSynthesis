@@ -7,6 +7,7 @@ enum ErrorDetectionNetworkType
 	None,
 	Hamming2,
 	Hamming2and1,
+	Linear,
 	Nonlinear,
 	Multilinear
 };
@@ -15,19 +16,15 @@ class ErrorDetectionNetwork
 {
 private:
 	ErrorDetectionNetworkType myEDNT;
-	FiniteStateMachine * myFSM;
 
 public:
 	ErrorDetectionNetwork();
-	ErrorDetectionNetwork(ErrorDetectionNetworkType, FiniteStateMachine *);
+	ErrorDetectionNetwork(ErrorDetectionNetworkType);
 	~ErrorDetectionNetwork();
 
-	
+	int genPrediction(int);
 	void genVerilog(string);
-	void simulateFSM(vector<int>, bool);
+	bool doErrorCheck(int, int);
 
-	//Getters and setters
-	void setFSM(FiniteStateMachine *);
-	FiniteStateMachine * getFSM();
 
 };

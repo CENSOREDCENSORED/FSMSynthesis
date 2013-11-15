@@ -9,15 +9,12 @@
 
 ErrorDetectionNetwork::ErrorDetectionNetwork()
 {
-	ErrorDetectionNetwork(None, nullptr);
+	ErrorDetectionNetwork(None);
 }
 
-ErrorDetectionNetwork::ErrorDetectionNetwork(ErrorDetectionNetworkType type, FiniteStateMachine * FSM)
+ErrorDetectionNetwork::ErrorDetectionNetwork(ErrorDetectionNetworkType type)
 {
 	myEDNT = type;
-	myFSM = FSM;
-
-
 }
 
 ErrorDetectionNetwork::~ErrorDetectionNetwork()
@@ -25,6 +22,10 @@ ErrorDetectionNetwork::~ErrorDetectionNetwork()
 
 }
 
+int ErrorDetectionNetwork::genPrediction(int data)
+{
+
+}
 
 void ErrorDetectionNetwork::genVerilog(string filename)
 {
@@ -35,37 +36,17 @@ void ErrorDetectionNetwork::genVerilog(string filename)
 	myfile.close();
 }
 
-void ErrorDetectionNetwork::simulateFSM(vector<int> inputs, bool doErrorAnalysis)
+bool ErrorDetectionNetwork::doErrorCheck(int data, int check)
 {
-	bool showStates = false;
-	int currState = myFSM->getInitialState();
-
-	if (showStates)
+	if (myEDNT == None) return true;
+	switch(myEDNT)
 	{
-		cout << currState << endl;
+	case None: 
+		return true;
+	case Hamming2:
+	case Hamming2and1:
+	case Linear:
+	case Nonlinear:
+	case Multilinear:
 	}
-
-	for (int i = 0; i < inputs.size(); i++)
-	{
-		int input = inputs.at(i);
-		int nextState = myFSM->getNextState(currState, input);
-
-
-		currState = nextState;
-		if (showStates)
-		{
-			cout << currState << endl;
-		}
-	}
-}
-
-//Getters and setters
-void ErrorDetectionNetwork::setFSM(FiniteStateMachine * FSM)
-{
-	myFSM = FSM;
-}
-
-FiniteStateMachine * ErrorDetectionNetwork::getFSM()
-{
-	return myFSM;
 }
