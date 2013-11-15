@@ -1,5 +1,7 @@
 #include "FiniteStateMachine.h"
 
+using namespace std;
+
 enum ErrorDetectionNetworkType
 {
 	None,
@@ -20,8 +22,12 @@ public:
 	ErrorDetectionNetwork(ErrorDetectionNetworkType, FiniteStateMachine *);
 	~ErrorDetectionNetwork();
 
+	
+	void genVerilog(string);
+	void simulateFSM(vector<int>, bool);
 
 	//Getters and setters
 	void setFSM(FiniteStateMachine *);
 	FiniteStateMachine * getFSM();
+
 };

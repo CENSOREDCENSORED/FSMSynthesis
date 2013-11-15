@@ -27,6 +27,7 @@ private:
 	int * myStateNames;
 
 	void elimUnreachableStates();
+	int decodeState(int);
 
 public:
 	FiniteStateMachine();
@@ -41,6 +42,7 @@ public:
 
 	//Getters and setters
 	int getNumStates();
-
+	int getInitialState();
+	int getNextState(int, int);
 	void setOutputLogic(bool);
 };

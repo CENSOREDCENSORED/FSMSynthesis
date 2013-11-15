@@ -23,6 +23,8 @@ FiniteStateMachine::FiniteStateMachine(int numStates, int numInputs, int numOutp
 	{
 		myStateNames[i] = i;
 	}
+
+	myInitialState = myStateNames[myInitialState];
 }
 
 FiniteStateMachine::FiniteStateMachine()
@@ -46,10 +48,19 @@ void FiniteStateMachine::minimizeFSM()
 	//TODO: Implement this
 }
 
+int FiniteStateMachine::decodeState(int stateName)
+{
+	for (int i = 0; i < myNumStates; i++)
+	{
+		if (myStateNames[i] == stateName) return i;
+	}
+	return -1;
+}
+
 void FiniteStateMachine::elimUnreachableStates()
 {
 	queue<int> queue;
-	queue.push(myInitialState);
+	queue.push(decodeState(myInitialState));
 	int * stateVisited = new int[myNumStates];
 	for (int i = 0; i < myNumStates; i++)
 	{
@@ -112,9 +123,8 @@ void FiniteStateMachine::elimUnreachableStates()
 
 	myNumStates = newNumStates;
 	
-	myInitialState = stateRemapped[myInitialState];
+	myInitialState = newStateNames[stateRemapped[decodeState(myInitialState)]];
 
-	
 	delete myStateNames;
 	myStateNames = newStateNames;
 
@@ -278,20 +288,6 @@ void FiniteStateMachine::genVerilog(string filename)
 	myfile << "begin" << endl;
 	myfile << "\tif (reset) currstate <= " << myStateNames[myInitialState] << ";" << endl;
 	myfile << "\telse currstate <= nextstate;" << endl;
-	/*myfile << "\telse" << endl;
-	myfile << "\tbegin" << endl;
-
-	for (int i = 0; i < myNumStates; i++)
-	{
-		for (int j = 0; j < myNumInputs; j++)
-		{
-			myfile << "\t\tif (state == " << myStateNames[i] << " && in == " << j << ")" << endl;
-			myfile << "\t\tbegin" << endl;
-			myfile << "\t\tend" << endl;
-		}
-	}
-
-	myfile << "\tend" << endl;*/
 
 	myfile << "end" << endl;
 
@@ -335,6 +331,22 @@ void FiniteStateMachine::genVerilog(string filename)
 int FiniteStateMachine::getNumStates()
 {
 	return myNumStates;
+}
+
+int FiniteStateMachine::getInitialState()
+{
+	return myInitialState;
+}
+
+int FiniteStateMachine::getNextState(int state, int input)
+{
+	state = decodeState(state);
+	if (state == -1) return -1;
+	if (state < myNumStates && input < myNumInputs)
+	{
+		return myStateNames[myNextStateArr[state * myNumInputs + input]];
+	}
+	else return -1;
 }
 
 void FiniteStateMachine::setOutputLogic(bool val)
