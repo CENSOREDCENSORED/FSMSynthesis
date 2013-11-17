@@ -43,6 +43,27 @@ int ErrorDetectionNetwork::genPrediction(int data)
 	}
 }
 
+int ErrorDetectionNetwork::getPredictionSize(int dataSize)
+{
+	switch (myEDNT)
+	{
+	case None: 
+		return 0;
+	case Hamming2: 
+		return 0;
+	case Hamming2and1:
+		return 0;
+	case Linear:
+		return ec->getHammingPredictionSize(dataSize);
+	case Nonlinear:
+		//ec->genNonLinearHammingCodeParity(data,,);
+		return 0;
+	case Multilinear:
+		return 0;
+	default: return 0;
+	}
+}
+
 void ErrorDetectionNetwork::genVerilog(string filename)
 {
 	ofstream myfile;

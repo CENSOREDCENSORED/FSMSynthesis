@@ -25,6 +25,7 @@ public:
 	~ErrorDetectionNetwork();
 
 	int genPrediction(int);
+	int getPredictionSize(int);
 	void genVerilog(string);
 	bool doErrorCheck(int, int);
 

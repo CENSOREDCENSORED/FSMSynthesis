@@ -11,4 +11,5 @@ public:
 	unsigned int genHammingCodeParity(unsigned int);
 	unsigned int genNonLinearHammingCodeParity(unsigned int , unsigned int , unsigned int );
 	unsigned int nonLinearize(unsigned int , unsigned int , unsigned int );
+	int getHammingPredictionSize(int);
 };

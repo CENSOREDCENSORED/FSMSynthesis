@@ -23,6 +23,16 @@ FSMSimulator::~FSMSimulator()
 
 void FSMSimulator::simulateFSM(vector<int> inputs, bool doErrorAnalysis)
 {
+	int index = 0;
+	int data = myFSM->getNumStates();
+	while (data != 0) 
+	{
+		data = data >> 1;
+		index = index + 1;
+	}
+	int predictionSize = myEDN->getPredictionSize(index);
+	cout << index << ":" << predictionSize << endl;
+	int predictionVal = 1 << predictionSize;
 	bool showStates = true;
 	int currState = myFSM->getInitialState();
 	int currParity = myEDN->genPrediction(currState);
@@ -41,6 +51,7 @@ void FSMSimulator::simulateFSM(vector<int> inputs, bool doErrorAnalysis)
 		if (doErrorAnalysis)
 		{
 			//TODO: error analysis
+			
 		}
 
 		currState = nextState;

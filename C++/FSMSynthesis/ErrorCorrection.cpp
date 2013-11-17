@@ -114,3 +114,11 @@ unsigned int ErrorCorrection::genNonLinearHammingCodeParity(unsigned int data, u
 {
 	return nonLinearize(genHammingCodeParity(data), irrPoly, numElems);
 }
+
+int ErrorCorrection::getHammingPredictionSize(int dataSize)
+{
+	if (dataSize < 5) return 3;
+	if (dataSize < 12) return 4;
+	if (dataSize < 27) return 5;
+	return 6;
+}
