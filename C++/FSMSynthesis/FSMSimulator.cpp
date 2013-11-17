@@ -25,22 +25,29 @@ void FSMSimulator::simulateFSM(vector<int> inputs, bool doErrorAnalysis)
 {
 	bool showStates = true;
 	int currState = myFSM->getInitialState();
+	int currParity = myEDN->genPrediction(currState);
 
 	if (showStates)
 	{
-		cout << currState << endl;
+		cout << currState << "," << currParity << endl;
 	}
 
 	for (int i = 0; i < inputs.size(); i++)
 	{
 		int input = inputs.at(i);
 		int nextState = myFSM->getNextState(currState, input);
+		int nextParity = myEDN->genPrediction(nextState);
 
+		if (doErrorAnalysis)
+		{
+			//TODO: error analysis
+		}
 
 		currState = nextState;
+		currParity = nextParity;
 		if (showStates)
 		{
-			cout << currState << endl;
+			cout << currState << "," << currParity << endl;
 		}
 	}
 }

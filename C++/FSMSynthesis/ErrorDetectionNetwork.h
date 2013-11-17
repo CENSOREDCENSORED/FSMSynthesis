@@ -1,4 +1,5 @@
 #include "FiniteStateMachine.h"
+#include "ErrorCorrection.h"
 
 using namespace std;
 
@@ -16,6 +17,7 @@ class ErrorDetectionNetwork
 {
 private:
 	ErrorDetectionNetworkType myEDNT;
+	ErrorCorrection * ec;
 
 public:
 	ErrorDetectionNetwork();

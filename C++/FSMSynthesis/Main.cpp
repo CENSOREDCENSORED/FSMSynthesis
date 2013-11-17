@@ -1,4 +1,3 @@
-#include "ErrorCorrection.h"
 #include "FSMSimulator.h"
 #include <stdlib.h>     /* srand, rand */
 #include <stdio.h>
@@ -25,7 +24,7 @@ void main()
 	FSM->printFSM();
 	FSM->genVerilog("../../Verilog/FSM.v");
 
-	ErrorDetectionNetwork * EDN = new ErrorDetectionNetwork(None);
+	ErrorDetectionNetwork * EDN = new ErrorDetectionNetwork(Linear);
 	FSMSimulator * FSMSim = new FSMSimulator(FSM, EDN);
 
 	vector<int> inputs;
