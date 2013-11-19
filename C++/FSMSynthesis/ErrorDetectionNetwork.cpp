@@ -15,6 +15,14 @@ ErrorDetectionNetwork::ErrorDetectionNetwork(ErrorDetectionNetworkType type)
 {
 	myEDNT = type;
 	ec = new ErrorCorrection();
+
+	irreduciblePolynomials[0] = 0x1;
+	irreduciblePolynomials[1] = 0x3;
+	irreduciblePolynomials[2] = 0x7;
+	irreduciblePolynomials[3] = 0xB;
+	irreduciblePolynomials[4] = 0x13;
+	irreduciblePolynomials[5] = 0x25;
+	//irreduciblePolynomials[6] = 
 }
 
 ErrorDetectionNetwork::~ErrorDetectionNetwork()
@@ -22,7 +30,7 @@ ErrorDetectionNetwork::~ErrorDetectionNetwork()
 	delete ec;
 }
 
-int ErrorDetectionNetwork::genPrediction(int data)
+int ErrorDetectionNetwork::genPrediction(int data, int randNumber)
 {
 	switch (myEDNT)
 	{
@@ -35,7 +43,7 @@ int ErrorDetectionNetwork::genPrediction(int data)
 	case Linear:
 		return ec->genHammingCodeParity(data);
 	case Nonlinear:
-		//ec->genNonLinearHammingCodeParity(data,,);
+		//return ec->nonLinearize(ec->GFMult(data, randNumber),,);
 		return 0;
 	case Multilinear:
 		return 0;
@@ -73,23 +81,29 @@ void ErrorDetectionNetwork::genVerilog(string filename)
 	myfile.close();
 }
 
+//False means no error. True means error.
 bool ErrorDetectionNetwork::doErrorCheck(int data, int check)
 {
-	if (myEDNT == None) return true;
+	if (myEDNT == None) return false;
 	switch(myEDNT)
 	{
 	case None: 
-		return true;
+		return false;
 	case Hamming2: 
-		return true;
+		return false;
 	case Hamming2and1:
-		return true;
+		return false;
 	case Linear:
-		if (ec->genHammingCodeParity(data) == check) return true;
+		if (ec->genHammingCodeParity(data) != check) return true;
 		return false;
 	case Nonlinear:
-		return true;
+		return false;
 	case Multilinear:
-		return true;
+		return false;
 	}
+}
+
+void ErrorDetectionNetwork::setType(ErrorDetectionNetworkType ednt)
+{
+	myEDNT = ednt;
 }

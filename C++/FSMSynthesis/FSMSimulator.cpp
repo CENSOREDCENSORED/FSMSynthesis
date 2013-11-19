@@ -23,17 +23,19 @@ FSMSimulator::~FSMSimulator()
 
 void FSMSimulator::simulateFSM(vector<int> inputs, bool doErrorAnalysis)
 {
+	bool showStates = false;
+
 	int index = 0;
 	int data = myFSM->getNumStates();
-	while (data != 0) 
+	int tempData = data;
+	while (tempData != 0) 
 	{
-		data = data >> 1;
+		tempData = tempData >> 1;
 		index = index + 1;
 	}
 	int predictionSize = myEDN->getPredictionSize(index);
-	cout << index << ":" << predictionSize << endl;
 	int predictionVal = 1 << predictionSize;
-	bool showStates = true;
+	int dataVal = 1 << index;
 	int currState = myFSM->getInitialState();
 	int currParity = myEDN->genPrediction(currState);
 
@@ -42,16 +44,30 @@ void FSMSimulator::simulateFSM(vector<int> inputs, bool doErrorAnalysis)
 		cout << currState << "," << currParity << endl;
 	}
 
+	int totalErrorsDetectedGlobal = 0;;
+	int totalErrorsGlobal = 0;
+
 	for (int i = 0; i < inputs.size(); i++)
 	{
 		int input = inputs.at(i);
 		int nextState = myFSM->getNextState(currState, input);
-		int nextParity = myEDN->genPrediction(nextState);
+		int nextParity = myEDN->genPrediction(nextState, randNumber);
 
 		if (doErrorAnalysis)
 		{
 			//TODO: error analysis
-			
+			int numErrorsDetected = 0;
+			int totalErrors = (predictionVal * dataVal) - 1;
+			for (int i = 0; i < dataVal; i++)
+			{
+				for (int j = 0; j < predictionVal; j++)
+				{
+					if (i == 0 && j == 0) continue;
+					numErrorsDetected += myEDN->doErrorCheck(nextState ^ i, nextParity ^ j);
+				}
+			}
+			totalErrorsDetectedGlobal += numErrorsDetected;
+			totalErrorsGlobal += totalErrors;
 		}
 
 		currState = nextState;
@@ -61,6 +77,8 @@ void FSMSimulator::simulateFSM(vector<int> inputs, bool doErrorAnalysis)
 			cout << currState << "," << currParity << endl;
 		}
 	}
+
+	cout << "Detected " << totalErrorsDetectedGlobal << " errors out of " << totalErrorsGlobal << " possible errors." << endl;
 }
 
 void FSMSimulator::genVerilog(string filename)

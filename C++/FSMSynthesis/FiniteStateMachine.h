@@ -36,7 +36,7 @@ public:
 
 	void setStateNames(EncodingHeuristic);
 	void minimizeFSM();
-	void genRandomFSM(int);
+	void genRandomFSM();
 	void printFSM();
 	void genVerilog(string);
 

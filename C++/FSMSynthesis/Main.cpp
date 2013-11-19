@@ -10,26 +10,38 @@ using namespace std;
 
 void main()
 {
+	int seed = 100;
+	srand (seed);
+
+	int numStates = 10;
+	int numInputs = 4;
+	int numOutputs = 4;
+	int initialState = 3;
+
+	int numTransitions = 10;
+
 	//booleans
 	bool seeOutput = true;
 
 	//ErrorCorrection * ec = new ErrorCorrection();
 	//cout << ec->genHammingCodeParity(1) << endl;
 
-	FiniteStateMachine * FSM = new FiniteStateMachine(10, 4, 4, 3);
+	FiniteStateMachine * FSM = new FiniteStateMachine(numStates, numInputs, numOutputs, initialState);
 	//FSM->setOutputLogic(true);
-	FSM->genRandomFSM(100);
-	FSM->printFSM();
+	FSM->genRandomFSM();
+	//FSM->printFSM();
 	FSM->minimizeFSM();
-	FSM->printFSM();
+	//FSM->printFSM();
 	FSM->genVerilog("../../Verilog/FSM.v");
 
 	ErrorDetectionNetwork * EDN = new ErrorDetectionNetwork(Linear);
 	FSMSimulator * FSMSim = new FSMSimulator(FSM, EDN);
 
 	vector<int> inputs;
-	inputs.push_back(1);
-	inputs.push_back(3);
+	for (int i = 0; i < numTransitions; i++)
+	{
+		inputs.push_back(rand() % numInputs);
+	}
 	FSMSim->simulateFSM(inputs, true);
 
 	delete FSMSim;

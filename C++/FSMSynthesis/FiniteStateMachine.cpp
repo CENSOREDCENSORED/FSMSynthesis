@@ -133,9 +133,8 @@ void FiniteStateMachine::elimUnreachableStates()
 
 }
 
-void FiniteStateMachine::genRandomFSM(int seed)
+void FiniteStateMachine::genRandomFSM()
 {
-	srand (seed);
 
 	for (int i = 0; i < myNumStates; i++)
 	{
