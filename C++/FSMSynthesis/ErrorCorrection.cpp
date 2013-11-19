@@ -56,6 +56,16 @@ unsigned int ErrorCorrection::inverse(unsigned int operand, unsigned int irrPoly
 	return operand;
 }
 
+unsigned int ErrorCorrection::genSingleBitParity(unsigned int data)
+{
+	unsigned int result = 0;
+	for (int i = 0; i < 32; i++){
+		result ^= (data >> i) & 1;
+	}
+
+	return result;
+}
+
 unsigned int ErrorCorrection::genHammingCodeParity(unsigned int data)
 {
 	unsigned int offset = 0;

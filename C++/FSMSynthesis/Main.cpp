@@ -13,7 +13,7 @@ void main()
 	int seed = 100;
 	srand (seed);
 
-	int numStates = 10;
+	int numStates = 8;
 	int numInputs = 4;
 	int numOutputs = 4;
 	int initialState = 3;
@@ -32,9 +32,11 @@ void main()
 	//FSM->printFSM();
 	FSM->minimizeFSM();
 	//FSM->printFSM();
-	FSM->genVerilog("../../Verilog/FSM.v");
+	//FSM->genVerilog("../../Verilog/FSM.v");
 
-	ErrorDetectionNetwork * EDN = new ErrorDetectionNetwork(Linear);
+	//ErrorDetectionNetwork * EDN = new ErrorDetectionNetwork(Hamming2);
+	//ErrorDetectionNetwork * EDN = new ErrorDetectionNetwork(Linear);
+	ErrorDetectionNetwork * EDN = new ErrorDetectionNetwork(Nonlinear);
 	FSMSimulator * FSMSim = new FSMSimulator(FSM, EDN);
 
 	vector<int> inputs;
