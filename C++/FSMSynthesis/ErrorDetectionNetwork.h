@@ -31,6 +31,7 @@ public:
 	int getPredictionSize(int);
 	void genVerilog(string);
 	bool doErrorCheck(int data, int check, int randNumber, unsigned int irrPoly, unsigned int numElems);
+	bool usesRandom();
 
 	//Getters and Setters
 	void setType(ErrorDetectionNetworkType);

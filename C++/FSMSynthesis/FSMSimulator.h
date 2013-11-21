@@ -14,7 +14,7 @@ public:
 	~FSMSimulator();
 
 	void genVerilog(string);
-	void simulateFSM(vector<int>, bool);
+	void simulateFSM(vector<int>, bool, string);
 	
 	
 	//Getters and setters

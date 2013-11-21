@@ -34,10 +34,17 @@ unsigned int ErrorCorrection::GFMult(unsigned int operand1, unsigned int operand
 	}
 
 	//cout << std::hex << result << "," << MSBIndex << endl;
+	int numElemsMinusOne = numElems-1;
+	int index = 0;
+	while (numElemsMinusOne != 0)
+	{
+		numElemsMinusOne = numElemsMinusOne >> 1;
+		index++;
+	}
 
 	//Perform mod with irreducible polynomial
-	for (int i = MSBIndex - 3; i >=0; i--){
-		if (result >= (1 << (i + 3))){
+	for (int i = MSBIndex - index; i >=0; i--){
+		if (result >= (1 << (i + index))){
 			result = (irrPoly << i) ^ result;
 		}
 	}

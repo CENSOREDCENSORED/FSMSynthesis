@@ -13,15 +13,28 @@ void main()
 	int seed = 100;
 	srand (seed);
 
-	int numStates = 8;
+	int numStates = 40;
 	int numInputs = 4;
 	int numOutputs = 4;
 	int initialState = 3;
 
-	int numTransitions = 10;
+	int numTransitions = 100;
 
 	//booleans
-	bool seeOutput = true;
+	bool testRandNumGen = false;
+	bool seeOutput = false;
+
+	if (testRandNumGen)
+	{
+		RandNumGenerator * rng = new RandNumGenerator(0x19 >> 1);
+		rng->seedRandNumGen(1);
+		int var = 1;
+		for (int i = 0; i < 100; i++)
+		{
+			cout << var << endl;
+			var = rng->genRandNum();
+		}
+	}
 
 	//ErrorCorrection * ec = new ErrorCorrection();
 	//cout << ec->genHammingCodeParity(1) << endl;
@@ -44,7 +57,15 @@ void main()
 	{
 		inputs.push_back(rand() % numInputs);
 	}
-	FSMSim->simulateFSM(inputs, true);
+	FSMSim->simulateFSM(inputs, true, "ErrorCountNonLinear.csv");
+
+	EDN->setType(Linear);
+
+	FSMSim->simulateFSM(inputs, true, "ErrorCountLinear.csv");
+
+	EDN->setType(Hamming2);
+
+	FSMSim->simulateFSM(inputs, true, "ErrorCountHamming2.csv");
 
 	delete FSMSim;
 	delete EDN;

@@ -27,6 +27,8 @@ unsigned int RandNumGenerator::genRandNum()
 
 	nextNum = (nextNum >> 1) ^ (-((int) nextNum & 1) & myPolynomial);
 
+	myCurrnum = nextNum;
+
 	return nextNum;
 }
 

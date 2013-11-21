@@ -21,9 +21,10 @@ FSMSimulator::~FSMSimulator()
 
 }
 
-void FSMSimulator::simulateFSM(vector<int> inputs, bool doErrorAnalysis)
+void FSMSimulator::simulateFSM(vector<int> inputs, bool doErrorAnalysis, string errorAnalysisFile)
 {
 	bool showStates = true;
+	bool usesRandNumGen = myEDN->usesRandom();
 
 	int index = 0;
 	int data = myFSM->getNumStates();
@@ -54,8 +55,22 @@ void FSMSimulator::simulateFSM(vector<int> inputs, bool doErrorAnalysis)
 		cout << currState << "," << currParity << endl;
 	}
 
-	int totalErrorsDetectedGlobal = 0;;
+	int totalErrorsDetectedGlobal = 0;
 	int totalErrorsGlobal = 0;
+
+	int totalErrors = (predictionVal * dataVal) - 1;
+	int * errorCount = new int[totalErrors+1];
+	if (usesRandNumGen)
+	{
+		delete errorCount;
+		totalErrors = (predictionVal * dataVal * predictionVal) - 1;
+		errorCount = new int[totalErrors+1];
+	}
+
+	for (int i = 0; i < totalErrors+1;i++)
+	{
+		errorCount[i] = 0;
+	}
 
 	for (int i = 0; i < inputs.size(); i++)
 	{
@@ -68,13 +83,36 @@ void FSMSimulator::simulateFSM(vector<int> inputs, bool doErrorAnalysis)
 		{
 			//TODO: error analysis
 			int numErrorsDetected = 0;
-			int totalErrors = (predictionVal * dataVal) - 1;
+			
 			for (int i = 0; i < dataVal; i++)
 			{
 				for (int j = 0; j < predictionVal; j++)
 				{
-					if (i == 0 && j == 0) continue;
-					numErrorsDetected += myEDN->doErrorCheck(nextState ^ i, nextParity ^ j, randNumber, polynomial, dataVal);
+					if (usesRandNumGen) 
+					{
+						for (int k = 0; k < predictionVal; k++)
+						{
+							if (i == 0 && j == 0 && k == 0) continue;
+							int errorsDetected = myEDN->doErrorCheck(nextState ^ i, nextParity ^ j, randNumber ^ k, polynomial, dataVal);
+							if (errorsDetected)
+							{
+								unsigned int errorIndex = k | (j << predictionSize) | (i << (predictionSize*2));
+								errorCount[errorIndex] = errorCount[errorIndex] + 1;
+							}
+							numErrorsDetected += errorsDetected;
+						}
+					}
+					else
+					{
+						if (i == 0 && j == 0) continue;
+						int errorsDetected = myEDN->doErrorCheck(nextState ^ i, nextParity ^ j, randNumber, polynomial, dataVal);
+						if (errorsDetected)
+						{
+							unsigned int errorIndex = j | (i << predictionSize);
+							errorCount[errorIndex] = errorCount[errorIndex] + 1;
+						}
+						numErrorsDetected += errorsDetected;
+					}
 				}
 			}
 			totalErrorsDetectedGlobal += numErrorsDetected;
@@ -88,6 +126,29 @@ void FSMSimulator::simulateFSM(vector<int> inputs, bool doErrorAnalysis)
 			cout << currState << "," << currParity << endl;
 		}
 	}
+
+	if (doErrorAnalysis)
+	{
+		ofstream myfile;
+		myfile.open(errorAnalysisFile);
+
+		for (int i = 0; i < totalErrors+1; i++)
+		{
+			myfile << errorCount[i] << endl;
+		}
+
+		myfile << "=STDEV(A" << totalErrors+1 << ":A1)" << endl;
+		myfile << endl;
+
+
+		myfile << totalErrorsDetectedGlobal << "," << totalErrorsGlobal << "," << "=100*" << 
+			totalErrorsDetectedGlobal << "/" << totalErrorsGlobal << endl;
+
+		myfile << myFSM->getNumStates() << endl;
+		myfile.close();
+	}
+
+	delete errorCount;
 
 	cout << "Detected " << totalErrorsDetectedGlobal << " errors out of " << totalErrorsGlobal << " possible errors." << endl;
 }

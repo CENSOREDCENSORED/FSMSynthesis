@@ -108,6 +108,12 @@ bool ErrorDetectionNetwork::doErrorCheck(int data, int check, int randNumber, un
 	}
 }
 
+bool ErrorDetectionNetwork::usesRandom()
+{
+	if (myEDNT == Nonlinear || myEDNT == Multilinear) return true;
+	return false; 
+}
+
 void ErrorDetectionNetwork::setType(ErrorDetectionNetworkType ednt)
 {
 	myEDNT = ednt;

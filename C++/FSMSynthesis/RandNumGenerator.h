@@ -2,6 +2,7 @@
 
 using namespace std;
 
+//This is just an LFSR =[
 class RandNumGenerator
 {
 private:
