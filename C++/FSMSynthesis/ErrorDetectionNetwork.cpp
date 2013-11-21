@@ -44,10 +44,12 @@ int ErrorDetectionNetwork::genPrediction(int data, int randNumber, unsigned int 
 	case None: 
 		return 0;
 	case Hamming2: 
-		return ec->genSingleBitParity(data);
+		return 0;
 	case Hamming2and1:
 		return 0;
-	case Linear:
+	case LinearParity:
+		return ec->genSingleBitParity(data);
+	case LinearHamming:
 		return ec->genHammingCodeParity(data);
 	case Nonlinear:
 		return ec->nonLinearize(ec->GFMult(data, randNumber,irrPoly,numElems),irrPoly,numElems);
@@ -64,10 +66,12 @@ int ErrorDetectionNetwork::getPredictionSize(int dataSize)
 	case None: 
 		return 0;
 	case Hamming2: 
-		return 1;
+		return 0;
 	case Hamming2and1:
 		return 0;
-	case Linear:
+	case LinearParity:
+		return 1;
+	case LinearHamming:
 		return ec->getHammingPredictionSize(dataSize);
 	case Nonlinear:
 		//ec->genNonLinearHammingCodeParity(data,,);
@@ -95,11 +99,13 @@ bool ErrorDetectionNetwork::doErrorCheck(int data, int check, int randNumber, un
 	{
 	case None: 
 		return false;
-	case Hamming2: 
-		return ec->genSingleBitParity(data) != check;
+	case Hamming2:
+		return false;
 	case Hamming2and1:
 		return false;
-	case Linear:
+	case LinearParity:
+		return ec->genSingleBitParity(data) != check;
+	case LinearHamming:
 		return ec->genHammingCodeParity(data) != check;
 	case Nonlinear:
 		return ec->nonLinearize(ec->GFMult(data, randNumber,irrPoly,numElems),irrPoly,numElems) != check;

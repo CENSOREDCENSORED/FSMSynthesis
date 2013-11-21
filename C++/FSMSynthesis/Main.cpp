@@ -13,7 +13,7 @@ void main()
 	int seed = 100;
 	srand (seed);
 
-	int numStates = 40;
+	int numStates = 10;
 	int numInputs = 4;
 	int numOutputs = 4;
 	int initialState = 3;
@@ -57,15 +57,20 @@ void main()
 	{
 		inputs.push_back(rand() % numInputs);
 	}
-	FSMSim->simulateFSM(inputs, true, "ErrorCountNonLinear.csv");
+	FSMSim->simulateFSM(inputs, true, "ErrorCountNonLinearHamming.csv");
 
-	EDN->setType(Linear);
+	EDN->setType(LinearHamming);
 
 	FSMSim->simulateFSM(inputs, true, "ErrorCountLinear.csv");
 
-	EDN->setType(Hamming2);
+	EDN->setType(LinearParity);
 
+	FSMSim->simulateFSM(inputs, true, "ErrorCountLinearParity.csv");
+
+	EDN->setType(Hamming2);
+	FSM->setStateNames(EncodingHeuristic::Hamming2);
 	FSMSim->simulateFSM(inputs, true, "ErrorCountHamming2.csv");
+
 
 	delete FSMSim;
 	delete EDN;

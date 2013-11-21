@@ -9,7 +9,8 @@ enum ErrorDetectionNetworkType
 	None,
 	Hamming2,
 	Hamming2and1,
-	Linear,
+	LinearParity,
+	LinearHamming,
 	Nonlinear,
 	Multilinear
 };

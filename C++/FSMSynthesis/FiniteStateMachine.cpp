@@ -37,9 +37,37 @@ FiniteStateMachine::~FiniteStateMachine()
 	delete myNextStateArr;
 }
 
+void FiniteStateMachine::setHamming2()
+{
+	bool implemented = false;
+	int * newStateNames = new int[myNumStates];
+
+	for (int i = 0; i < myNumStates; i++) 
+	{
+		newStateNames[i] = -1;
+	}
+
+	if (implemented)
+	{
+		delete myStateNames;
+		myStateNames = newStateNames;
+	}
+	else delete newStateNames;
+}
+
 void FiniteStateMachine::setStateNames(EncodingHeuristic heuristic)
 {
 	//TODO: Implement this
+	switch (heuristic)
+	{
+	case Hamming2:
+		setHamming2();
+		return;
+	case Hamming2and1:
+		return;
+	default:
+		return;
+	}
 }
 
 void FiniteStateMachine::minimizeFSM()

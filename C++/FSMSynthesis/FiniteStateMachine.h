@@ -11,7 +11,9 @@ enum EncodingHeuristic
 {
 	PrioritizedAdjacency,
 	HotOne,
-	MinimumHammingDistance
+	MinimumHammingDistance,
+	Hamming2,
+	Hamming2and1
 };
 
 class FiniteStateMachine
@@ -28,6 +30,7 @@ private:
 
 	void elimUnreachableStates();
 	int decodeState(int);
+	void setHamming2();
 
 public:
 	FiniteStateMachine();
