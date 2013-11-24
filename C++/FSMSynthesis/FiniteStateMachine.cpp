@@ -60,10 +60,10 @@ void FiniteStateMachine::setStateNames(EncodingHeuristic heuristic)
 	//TODO: Implement this
 	switch (heuristic)
 	{
-	case Hamming2:
+	case Hamming2Encoding:
 		setHamming2();
 		return;
-	case Hamming2and1:
+	case Hamming2and1Encoding:
 		return;
 	default:
 		return;

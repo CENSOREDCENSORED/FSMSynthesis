@@ -12,8 +12,8 @@ enum EncodingHeuristic
 	PrioritizedAdjacency,
 	HotOne,
 	MinimumHammingDistance,
-	Hamming2,
-	Hamming2and1
+	Hamming2Encoding,
+	Hamming2and1Encoding
 };
 
 class FiniteStateMachine
