@@ -5,6 +5,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <time.h>
 
 using namespace std;
 
@@ -29,7 +30,7 @@ void main()
 	bool testRandNumGen = false;
 	bool testFSM = false;
 	bool testPowAnalysis = true;
-	bool seeOutput = true;
+	bool seeOutput = false;
 
 	if (testRandNumGen)
 	{
@@ -88,17 +89,17 @@ void main()
 
 	if (testPowAnalysis)
 	{
-		seed = 120;
+		seed = time(NULL);
 		for (int thingy = 0; thingy < 2; thingy++)
 		{
-			srand(seed);
+			//srand(seed);
 
 			//Parameters
 			int trojanLength = 10;
-			int sideChannelPowerOffset = 5;
-			int noiseMargin = 500;
+			int sideChannelPowerOffset = 100;
+			int noiseMargin = 1000;
 			int powerMargin = 2000;
-			int numiter = 100;
+			int numiter = 20000;
 
 			bool hasTrojan = thingy;//rand() % 2;
 
@@ -154,29 +155,31 @@ void main()
 
 				bool trojanPrediction = false;//(powerMeasurement - powerMeasurementGolden) > (sideChannelPowerOffset + noiseMargin/10);
 
-				cout << var << "," << powerMeasurement << "," << powerMeasurementGolden << "," << trojIndex 
-					<< "," << trojanPrediction << endl;
+				//cout << var << "," << powerMeasurement << "," << powerMeasurementGolden << "," << trojIndex 
+				//	<< "," << trojanPrediction << endl;
 
 				myfile << var << "," << powerMeasurement << "," << powerMeasurementGolden << "," << trojIndex 
 					<< "," << trojanPrediction << ",";
 
-				myfile << "=B" << i+1 << "-C" << i+1 << ",";
-				myfile << "=A" << i+1 << "*F" << i+1 << ",";
+				myfile << "=A" << i+1 << "*B" << i+1 << ",";
+				myfile << "=A" << i+1 << "*C" << i+1 << ",";
 				myfile << endl;
 			}
 
-			myfile << "=AVERAGE(A1:A" << numiter << "),,,,,=AVERAGE(F1:F" << numiter << ")," 
+			myfile << "=AVERAGE(A1:A" << numiter << "),=AVERAGE(B1:B" << numiter << "),=AVERAGE(C1:C" << numiter << "),,,=AVERAGE(F1:F" << numiter << ")," 
 				<< "=AVERAGE(G1:G" << numiter << "),";
 			
-			myfile << "=A" << numiter+1 << "*F" << numiter+1 << ",";
 			myfile << endl;
 
-			myfile << "=STDEV(A1:A" << numiter << "),,,,,=STDEV(F1:F" << numiter << ")," 
+			myfile << ",=(-(A" << numiter+1 << "*B" << numiter+1 << ")+F" << numiter+1 << ")/(STDEV(A1:A" << numiter << ")*STDEV(B1:B" << numiter << ")),";
+			myfile << "=(-(A" << numiter+1 << "*C" << numiter+1 << ")+G" << numiter+1 << ")/(STDEV(A1:A" << numiter << ")*STDEV(C1:C" << numiter << ")),";
+			myfile << endl;
+
+			/*myfile << "=STDEV(A1:A" << numiter << "),,,,,=STDEV(F1:F" << numiter << ")," 
 				<< ",=(H" << numiter+1 << "-G" << numiter+1 << ")/(A" << numiter+2 << 
 				"*F" << numiter+2 << ")";
 
-			myfile << endl;
-
+			myfile << endl;*/
 			delete trojanSeq;
 			delete trojanIndex;
 
