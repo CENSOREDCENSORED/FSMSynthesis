@@ -8,6 +8,11 @@
 
 using namespace std;
 
+int measurePower(int var, int modVal)
+{
+	return rand() % modVal;
+}
+
 void main()
 {
 	int seed = 100;
@@ -83,49 +88,100 @@ void main()
 
 	if (testPowAnalysis)
 	{
-		int trojanLength = 10;
-		int sideChannelPowerOffset = 10;
-		int * trojanSeq = new int[trojanLength];
-		int * trojanIndex = new int[trojanLength];
-		for (int i = 0; i < trojanLength; i++)
+		seed = 120;
+		for (int thingy = 0; thingy < 2; thingy++)
 		{
-			trojanSeq[i] = rand() % 2;
-			trojanIndex[i] = rand() % trojanLength;
-			cout << trojanSeq[i] << "," << trojanIndex[i] << endl;
+			srand(seed);
+
+			//Parameters
+			int trojanLength = 10;
+			int sideChannelPowerOffset = 5;
+			int noiseMargin = 500;
+			int powerMargin = 2000;
+			int numiter = 100;
+
+			bool hasTrojan = thingy;//rand() % 2;
+
+			ofstream myfile;
+			if (hasTrojan) myfile.open("TrojanResults.csv");
+			else myfile.open("NoTrojanResults.csv");
+
+			int * trojanSeq = new int[trojanLength];
+			int * trojanIndex = new int[trojanLength];
+			for (int i = 0; i < trojanLength; i++)
+			{
+				trojanSeq[i] = rand() % 2;
+				trojanIndex[i] = rand() % trojanLength;
+				cout << trojanSeq[i] << "," << trojanIndex[i] << endl;
+			}
+			RandNumGenerator * rng = new RandNumGenerator(0x481 >> 1);
+			rng->seedRandNumGen(1);
+			int count = 0;
+
+			for (int i = 0; i < numiter; i++)
+			{
+				//Pseudorandom normal distrubtion
+				int noiseTrojan = 0; 
+				int noiseGolden = 0;
+				for (int i = 0; i < 16; i++)
+				{
+					noiseTrojan += (rand() % (2*noiseMargin+1)) - noiseMargin;
+					noiseGolden += (rand() % (2*noiseMargin+1)) - noiseMargin;
+				}
+
+				noiseTrojan /= 16;
+				noiseGolden /= 16;
+
+				//input test vector via lfsr
+				int var = rng->genRandNum();
+
+				int powerMeasurement = measurePower(var, powerMargin);
+				int powerMeasurementGolden = powerMeasurement;
+				powerMeasurement += noiseTrojan;
+				powerMeasurementGolden += noiseGolden;
+
+				bool trojIndex = false; 
+				if (hasTrojan && (((var >> trojanIndex[count]) & 1) == trojanSeq[count]))
+				{
+					count++;
+					powerMeasurement += sideChannelPowerOffset;
+					trojIndex = true;
+				}
+				else 
+				{
+					count = 0;
+				}
+
+				bool trojanPrediction = false;//(powerMeasurement - powerMeasurementGolden) > (sideChannelPowerOffset + noiseMargin/10);
+
+				cout << var << "," << powerMeasurement << "," << powerMeasurementGolden << "," << trojIndex 
+					<< "," << trojanPrediction << endl;
+
+				myfile << var << "," << powerMeasurement << "," << powerMeasurementGolden << "," << trojIndex 
+					<< "," << trojanPrediction << ",";
+
+				myfile << "=B" << i+1 << "-C" << i+1 << ",";
+				myfile << "=A" << i+1 << "*F" << i+1 << ",";
+				myfile << endl;
+			}
+
+			myfile << "=AVERAGE(A1:A" << numiter << "),,,,,=AVERAGE(F1:F" << numiter << ")," 
+				<< "=AVERAGE(G1:G" << numiter << "),";
+			
+			myfile << "=A" << numiter+1 << "*F" << numiter+1 << ",";
+			myfile << endl;
+
+			myfile << "=STDEV(A1:A" << numiter << "),,,,,=STDEV(F1:F" << numiter << ")," 
+				<< ",=(H" << numiter+1 << "-G" << numiter+1 << ")/(A" << numiter+2 << 
+				"*F" << numiter+2 << ")";
+
+			myfile << endl;
+
+			delete trojanSeq;
+			delete trojanIndex;
+
+			myfile.close();
 		}
-		RandNumGenerator * rng = new RandNumGenerator(0x481 >> 1);
-		rng->seedRandNumGen(1);
-		int count = 0;
-		for (int i = 0; i < 100; i++)
-		{
-			//Pseudorandom normal distrubtion
-			int powMeasurement = 0; 
-			for (int i = 0; i < 16; i++)
-			{
-				powMeasurement += (rand() % 101) - 50;
-			}
-
-			powMeasurement /= 16;
-
-			//input test vector via lfsr
-			int var = rng->genRandNum();
-			bool trojIndex = false; 
-			if ((var >> trojanIndex[count]) & 1 == trojanSeq[count])
-			{
-				count++;
-				powMeasurement += sideChannelPowerOffset;
-				trojIndex = true;
-			}
-			else 
-			{
-				count = 0;
-			}
-
-			cout << var << "," << powMeasurement << "," << trojIndex << endl;
-		}
-
-		delete trojanSeq;
-		delete trojanIndex;
 	}
 
 	if (seeOutput) while (true){}
