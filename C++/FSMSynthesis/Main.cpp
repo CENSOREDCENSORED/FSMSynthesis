@@ -100,6 +100,7 @@ void main()
 			int noiseMargin = 1000;
 			int powerMargin = 2000;
 			int numiter = 20000;
+			int numScanChains = 1;
 
 			bool hasTrojan = thingy;//rand() % 2;
 
@@ -109,10 +110,12 @@ void main()
 
 			int * trojanSeq = new int[trojanLength];
 			int * trojanIndex = new int[trojanLength];
+			int * trojanScan = new int[trojanLength];
 			for (int i = 0; i < trojanLength; i++)
 			{
 				trojanSeq[i] = rand() % 2;
 				trojanIndex[i] = rand() % trojanLength;
+				trojanScan[i] = rand() % numScanChains;
 				cout << trojanSeq[i] << "," << trojanIndex[i] << endl;
 			}
 			RandNumGenerator * rng = new RandNumGenerator(0x481 >> 1);
@@ -182,6 +185,7 @@ void main()
 			myfile << endl;*/
 			delete trojanSeq;
 			delete trojanIndex;
+			delete trojanScan;
 
 			myfile.close();
 		}
