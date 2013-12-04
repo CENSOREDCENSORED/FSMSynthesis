@@ -28,9 +28,9 @@ void main()
 
 	//booleans
 	bool testRandNumGen = false;
-	bool testFSM = true;
+	bool testFSM = false;
 	bool testPowAnalysis = true;
-	bool seeOutput = false;
+	bool seeOutput = true;
 
 	if (testRandNumGen)
 	{
@@ -92,7 +92,13 @@ void main()
 
 		ScanChain * sc = new ScanChain(10);
 		sc->initScanChain(1);
-		sc->incrementScanChain();
+		for (int i = 0; i < 10; i++)
+		{
+			sc->printScanChain();
+			sc->incrementScanChain();
+			cout << endl;
+		}
+
 
 		delete sc;
 

@@ -34,3 +34,19 @@ int Circuit::getPowerMeasurement()
 {
 	return 1;
 }
+
+void Circuit::genRandomCircuit(int seed)
+{
+	srand(seed);
+
+	for (int i = 0; i < myNumScan; i++)
+	{
+		for (int j = 0; j < mySizeScan; j++)
+		{
+			myWires.push_back(myScanChainArr[i]->getFlopNet(j));
+		}
+	}
+
+
+}
+
