@@ -90,7 +90,7 @@ void main()
 	if (testPowAnalysis)
 	{
 
-		ScanChain * sc = new ScanChain(10);
+		/*ScanChain * sc = new ScanChain(10);
 		sc->initScanChain(1);
 		for (int i = 0; i < 10; i++)
 		{
@@ -100,40 +100,62 @@ void main()
 		}
 
 
-		delete sc;
+		delete sc;*/
 
-		/*seed = time(NULL);
+		seed = 120;
+		srand(seed);
+		int step = 2;
+
 		for (int thingy = 0; thingy < 2; thingy++)
 		{
 			//srand(seed);
 
 			//Parameters
 			int trojanLength = 10;
-			int sideChannelPowerOffset = 100;
-			int noiseMargin = 1000;
+			int sideChannelPowerOffset = 10;
+			int noiseMargin = 3000;
 			int powerMargin = 2000;
 			int numiter = 20000;
 			int numScanChains = 1;
 
-			bool hasTrojan = thingy;//rand() % 2;
+			bool hasTrojan = thingy & 1;//rand() % 2;
 
 			ofstream myfile;
-			if (hasTrojan) myfile.open("TrojanResults.csv");
-			else myfile.open("NoTrojanResults.csv");
+			string filename = "";
+			if (!hasTrojan) filename.append("No");
+			filename.append("TrojanResults");
+
+			ostringstream convert;
+			convert << thingy/2;
+			filename.append(convert.str());
+
+			filename.append(".csv");
+			myfile.open(filename);
 
 			int * trojanSeq = new int[trojanLength];
 			int * trojanIndex = new int[trojanLength];
 			int * trojanScan = new int[trojanLength];
+			int * scanChainIndex = new int[trojanLength];
 			for (int i = 0; i < trojanLength; i++)
 			{
 				trojanSeq[i] = rand() % 2;
 				trojanIndex[i] = rand() % trojanLength;
 				trojanScan[i] = rand() % numScanChains;
-				cout << trojanSeq[i] << "," << trojanIndex[i] << endl;
+				scanChainIndex[i] = rand() % 4;
+				cout << scanChainIndex[i] << "," << trojanSeq[i] << "," << trojanIndex[i] << endl;
 			}
-			RandNumGenerator * rng = new RandNumGenerator(0x481 >> 1);
-			rng->seedRandNumGen(1);
+			cout << "--------------" << endl;
+			RandNumGenerator * sc1 = new RandNumGenerator(0x481 >> 1);
+			RandNumGenerator * sc2 = new RandNumGenerator(0x481 >> 1);
+			RandNumGenerator * sc3 = new RandNumGenerator(0x481 >> 1);
+			RandNumGenerator * sc4 = new RandNumGenerator(0x481 >> 1);
+			sc1->seedRandNumGen(1);
+			sc2->seedRandNumGen(2);
+			sc3->seedRandNumGen(3);
+			sc4->seedRandNumGen(4);
 			int count = 0;
+
+			srand(time(NULL));
 
 			for (int i = 0; i < numiter; i++)
 			{
@@ -150,14 +172,46 @@ void main()
 				noiseGolden /= 16;
 
 				//input test vector via lfsr
-				int var = rng->genRandNum();
+				int var1 = sc1->genRandNum();
+				int var2 = sc2->genRandNum();
+				int var3 = sc3->genRandNum();
+				int var4 = sc4->genRandNum();
 
-				int powerMeasurement = measurePower(var, powerMargin);
+				if (step == 2)
+				{
+					//var1 = 475;
+					var2 = 950;
+					var3 = 621;
+					var4 = 1005;
+				}
+
+				int powerMeasurement = measurePower(var1, powerMargin);
 				int powerMeasurementGolden = powerMeasurement;
 				powerMeasurement += noiseTrojan;
 				powerMeasurementGolden += noiseGolden;
 
 				bool trojIndex = false; 
+				int scIndex = scanChainIndex[count];
+				int var = var1;
+				switch(scIndex)
+				{
+				case 0:
+					var = var1; 
+					break;
+				case 1:
+					var = var2;
+					break;
+				case 2:
+					var = var3;
+					break;
+				case 3:
+					var = var4;
+					break;
+				default:
+					var = var1;
+					break;
+				}
+
 				if (hasTrojan && (((var >> trojanIndex[count]) & 1) == trojanSeq[count]))
 				{
 					count++;
@@ -174,11 +228,13 @@ void main()
 				//cout << var << "," << powerMeasurement << "," << powerMeasurementGolden << "," << trojIndex 
 				//	<< "," << trojanPrediction << endl;
 
-				myfile << var << "," << powerMeasurement << "," << powerMeasurementGolden << "," << trojIndex 
+				myfile << "," << powerMeasurement << "," << powerMeasurementGolden << "," << trojIndex 
 					<< "," << trojanPrediction << ",";
 
 				myfile << "=A" << i+1 << "*B" << i+1 << ",";
 				myfile << "=A" << i+1 << "*C" << i+1 << ",";
+				myfile << "=B" << i+1 << "-C" << i+1 << ",";
+				myfile << var1 << "," << var2 << "," << var3 << "," << var4 << ",";
 				myfile << endl;
 			}
 
@@ -191,13 +247,13 @@ void main()
 			myfile << "=(-(A" << numiter+1 << "*C" << numiter+1 << ")+G" << numiter+1 << ")/(STDEV(A1:A" << numiter << ")*STDEV(C1:C" << numiter << ")),";
 			myfile << endl;
 
-			
+			delete scanChainIndex;
 			delete trojanSeq;
 			delete trojanIndex;
 			delete trojanScan;
 
 			myfile.close();
-		}*/
+		}
 	}
 
 	if (seeOutput) while (true){}
