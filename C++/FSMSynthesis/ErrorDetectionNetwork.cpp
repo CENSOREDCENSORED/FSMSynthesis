@@ -8,25 +8,16 @@
 
 ErrorDetectionNetwork::ErrorDetectionNetwork()
 {
-	ErrorDetectionNetwork(None);
+	myEDNT = None;
+	ec = new ErrorCorrection();
+
+	rng = new RandNumGenerator();
 }
 
 ErrorDetectionNetwork::ErrorDetectionNetwork(ErrorDetectionNetworkType type)
 {
 	myEDNT = type;
 	ec = new ErrorCorrection();
-
-	irreduciblePolynomials[0] = 0x1;
-	irreduciblePolynomials[1] = 0x3;
-	irreduciblePolynomials[2] = 0x7;
-	irreduciblePolynomials[3] = 0xD;
-	irreduciblePolynomials[4] = 0x19;
-	irreduciblePolynomials[5] = 0x29;
-	irreduciblePolynomials[6] = 0x61;
-	irreduciblePolynomials[7] = 0xC1;
-	irreduciblePolynomials[8] = 0x171;
-	irreduciblePolynomials[9] = 0x221;
-	irreduciblePolynomials[10] = 0x481;
 
 	rng = new RandNumGenerator();
 }
@@ -111,6 +102,8 @@ bool ErrorDetectionNetwork::doErrorCheck(int data, int check, int randNumber, un
 		return ec->nonLinearize(ec->GFMult(data, randNumber,irrPoly,numElems),irrPoly,numElems) != check;
 	case Multilinear:
 		return false;
+	default: 
+		return false;
 	}
 }
 
@@ -125,22 +118,22 @@ void ErrorDetectionNetwork::setType(ErrorDetectionNetworkType ednt)
 	myEDNT = ednt;
 }
 
-void ErrorDetectionNetwork::setRandNumGenPolynomial(unsigned int polynomial)
+void ErrorDetectionNetwork::setRandNumGenPolynomial(unsigned long long polynomial)
 {
 	rng->setPolynomial(polynomial);
 }
 
-unsigned int ErrorDetectionNetwork::getPolynomial(int degree)
+unsigned long long ErrorDetectionNetwork::getPolynomial(int degree)
 {
-	return irreduciblePolynomials[degree];
+	return rng->getPolynomial(degree); 
 }
 
-unsigned int ErrorDetectionNetwork::getRandNumber()
+unsigned long long ErrorDetectionNetwork::getRandNumber()
 {
 	return rng->genRandNum();
 }
 
-void ErrorDetectionNetwork::seedRNG(unsigned int seed)
+void ErrorDetectionNetwork::seedRNG(unsigned long long seed)
 {
 	rng->seedRandNumGen(seed);
 }

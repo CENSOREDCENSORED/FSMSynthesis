@@ -1,4 +1,3 @@
-#include "FSMSimulator.h"
 #include <stdlib.h>     /* srand, rand */
 #include <stdio.h>
 #include <iostream>
@@ -6,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <time.h>
+#include "Circuit.h"
 
 using namespace std;
 
@@ -28,7 +28,7 @@ void main()
 
 	//booleans
 	bool testRandNumGen = false;
-	bool testFSM = false;
+	bool testFSM = true;
 	bool testPowAnalysis = true;
 	bool seeOutput = false;
 
@@ -36,7 +36,7 @@ void main()
 	{
 		RandNumGenerator * rng = new RandNumGenerator(0x19 >> 1);
 		rng->seedRandNumGen(1);
-		int var = 1;
+		long long var = 1;
 		for (int i = 0; i < 100; i++)
 		{
 			cout << var << endl;
@@ -89,7 +89,14 @@ void main()
 
 	if (testPowAnalysis)
 	{
-		seed = time(NULL);
+
+		ScanChain * sc = new ScanChain(10);
+		sc->initScanChain(1);
+		sc->incrementScanChain();
+
+		delete sc;
+
+		/*seed = time(NULL);
 		for (int thingy = 0; thingy < 2; thingy++)
 		{
 			//srand(seed);
@@ -178,17 +185,13 @@ void main()
 			myfile << "=(-(A" << numiter+1 << "*C" << numiter+1 << ")+G" << numiter+1 << ")/(STDEV(A1:A" << numiter << ")*STDEV(C1:C" << numiter << ")),";
 			myfile << endl;
 
-			/*myfile << "=STDEV(A1:A" << numiter << "),,,,,=STDEV(F1:F" << numiter << ")," 
-				<< ",=(H" << numiter+1 << "-G" << numiter+1 << ")/(A" << numiter+2 << 
-				"*F" << numiter+2 << ")";
-
-			myfile << endl;*/
+			
 			delete trojanSeq;
 			delete trojanIndex;
 			delete trojanScan;
 
 			myfile.close();
-		}
+		}*/
 	}
 
 	if (seeOutput) while (true){}

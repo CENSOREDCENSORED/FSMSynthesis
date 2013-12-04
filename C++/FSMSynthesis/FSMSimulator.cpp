@@ -41,14 +41,14 @@ void FSMSimulator::simulateFSM(vector<int> inputs, bool doErrorAnalysis, string 
 	//cout << dataVal << "," << predictionVal << endl;
 
 	//TODO: generate better seed
-	unsigned int polynomial = myEDN->getPolynomial(index);
+	unsigned long long polynomial = myEDN->getPolynomial(index);
 	myEDN->seedRNG(1);
 	myEDN->setRandNumGenPolynomial(polynomial >> 1);
 	polynomial = myEDN->getPolynomial(index);
-	int randNumber = myEDN->getRandNumber();
+	unsigned long long randNumber = myEDN->getRandNumber();
 
 	int currState = myFSM->getInitialState();
-	int currParity = myEDN->genPrediction(currState, randNumber, polynomial, dataVal);
+	long long currParity = myEDN->genPrediction(currState, randNumber, polynomial, dataVal);
 
 	if (showStates)
 	{
@@ -93,7 +93,7 @@ void FSMSimulator::simulateFSM(vector<int> inputs, bool doErrorAnalysis, string 
 						for (int k = 0; k < predictionVal; k++)
 						{
 							if (i == 0 && j == 0 && k == 0) continue;
-							int errorsDetected = myEDN->doErrorCheck(nextState ^ i, nextParity ^ j, randNumber ^ k, polynomial, dataVal);
+							long long errorsDetected = myEDN->doErrorCheck(nextState ^ i, nextParity ^ j, randNumber ^ k, polynomial, dataVal);
 							if (errorsDetected)
 							{
 								unsigned int errorIndex = k | (j << predictionSize) | (i << (predictionSize*2));
@@ -105,7 +105,7 @@ void FSMSimulator::simulateFSM(vector<int> inputs, bool doErrorAnalysis, string 
 					else
 					{
 						if (i == 0 && j == 0) continue;
-						int errorsDetected = myEDN->doErrorCheck(nextState ^ i, nextParity ^ j, randNumber, polynomial, dataVal);
+						long long errorsDetected = myEDN->doErrorCheck(nextState ^ i, nextParity ^ j, randNumber, polynomial, dataVal);
 						if (errorsDetected)
 						{
 							unsigned int errorIndex = j | (i << predictionSize);

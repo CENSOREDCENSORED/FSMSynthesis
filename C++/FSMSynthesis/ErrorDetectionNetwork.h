@@ -36,8 +36,8 @@ public:
 
 	//Getters and Setters
 	void setType(ErrorDetectionNetworkType);
-	void setRandNumGenPolynomial(unsigned int polynomial);
-	unsigned int getPolynomial(int degree);
-	unsigned int getRandNumber();
-	void seedRNG(unsigned int seed);
+	void setRandNumGenPolynomial(unsigned long long polynomial);
+	unsigned long long getPolynomial(int degree);
+	unsigned long long getRandNumber();
+	void seedRNG(unsigned long long seed);
 };

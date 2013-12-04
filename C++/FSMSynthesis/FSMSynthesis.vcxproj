@@ -66,19 +66,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Circuit.cpp" />
     <ClCompile Include="ErrorCorrection.cpp" />
     <ClCompile Include="ErrorDetectionNetwork.cpp" />
     <ClCompile Include="FiniteStateMachine.cpp" />
     <ClCompile Include="FSMSimulator.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="RandNumGenerator.cpp" />
+    <ClCompile Include="ScanChain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Circuit.h" />
     <ClInclude Include="ErrorCorrection.h" />
     <ClInclude Include="ErrorDetectionNetwork.h" />
     <ClInclude Include="FiniteStateMachine.h" />
     <ClInclude Include="FSMSimulator.h" />
     <ClInclude Include="RandNumGenerator.h" />
+    <ClInclude Include="ScanChain.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

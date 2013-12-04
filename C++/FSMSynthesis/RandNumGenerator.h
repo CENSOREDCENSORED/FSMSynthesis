@@ -6,18 +6,21 @@ using namespace std;
 class RandNumGenerator
 {
 private:
-	unsigned int myCurrnum;
-	unsigned int myPolynomial;
+	unsigned long long myCurrnum;
+	unsigned long long myPolynomial;
+	unsigned long long * irreduciblePolynomials;
 
 public:
 	RandNumGenerator();
-	RandNumGenerator(unsigned int polynomial);
+	RandNumGenerator(unsigned long long polynomial);
 	~RandNumGenerator();
+	void initIrreduciblePolynomials();
 	
-	unsigned int genRandNum();
+	unsigned long long genRandNum();
 	void genVerilog(string filename);
 
 	//Getters and Setters
-	void setPolynomial(unsigned int polynomial);
-	void seedRandNumGen(unsigned int seed);
+	void setPolynomial(unsigned long long polynomial);
+	void seedRandNumGen(unsigned long long seed);
+	unsigned long long getPolynomial(int);
 };
