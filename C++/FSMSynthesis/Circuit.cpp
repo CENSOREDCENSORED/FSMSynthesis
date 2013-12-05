@@ -37,6 +37,8 @@ int Circuit::getPowerMeasurement()
 
 void Circuit::genRandomCircuit(int seed)
 {
+	unsigned int numiter = rand() % 1000000 + 1000000;
+
 	srand(seed);
 
 	for (int i = 0; i < myNumScan; i++)
@@ -47,6 +49,9 @@ void Circuit::genRandomCircuit(int seed)
 		}
 	}
 
+	for (int i = 0; i < numiter; i++)
+	{
 
+	}
 }
 
