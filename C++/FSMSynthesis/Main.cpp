@@ -11,7 +11,7 @@ using namespace std;
 
 int measurePower(int var, int modVal)
 {
-	return rand() % modVal;
+	return (rand() % modVal) + modVal;
 }
 
 void main()
@@ -30,7 +30,7 @@ void main()
 	bool testRandNumGen = false;
 	bool testFSM = false;
 	bool testPowAnalysis = true;
-	bool seeOutput = true;
+	bool seeOutput = false;
 
 	if (testRandNumGen)
 	{
@@ -112,9 +112,9 @@ void main()
 
 			//Parameters
 			int trojanLength = 10;
-			int sideChannelPowerOffset = 10;
-			int noiseMargin = 3000;
-			int powerMargin = 2000;
+			int sideChannelPowerOffset = 1;
+			int noiseMargin = 8000;
+			int powerMargin = 5000;
 			int numiter = 20000;
 			int numScanChains = 1;
 
@@ -179,10 +179,10 @@ void main()
 
 				if (step == 2)
 				{
-					//var1 = 475;
-					var2 = 950;
-					var3 = 621;
-					var4 = 1005;
+					var1 = 920;
+					var2 = 945;
+					var3 = 41;
+					//var4 = 995;
 				}
 
 				int powerMeasurement = measurePower(var1, powerMargin);
