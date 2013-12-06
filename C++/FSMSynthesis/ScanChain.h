@@ -1,34 +1,7 @@
 #include "FSMSimulator.h"
+#include "DigitalLogic.h"
 
 
-class Wire
-{
-private:
-	unsigned char myVal;
-
-public:
-	Wire();
-	~Wire();
-
-	void setVal(unsigned char);
-	unsigned char getVal();
-};
-
-class NandGate
-{
-private:
-	Wire * myIn1;
-	Wire * myIn2; 
-	Wire * myOut;
-public:
-	NandGate(Wire*, Wire*, Wire*);
-	~NandGate();
-	bool genOutput();
-
-	Wire* getOut();
-	Wire* getIn1();
-	Wire* getIn2();
-};
 
 class ScanChain
 {
@@ -41,11 +14,11 @@ private:
 
 public:
 	ScanChain();
-	ScanChain(int size);
+	ScanChain(int size, int scanChainNum);
 	~ScanChain();
 
-	void initScanChain();
-	void initScanChain(unsigned long long);
+	void initScanChain(int scanChainNum);
+	void seedScanChain(unsigned long long);
 	void incrementScanChain();
 	void printScanChain();
 

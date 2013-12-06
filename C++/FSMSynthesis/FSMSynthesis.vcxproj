@@ -67,6 +67,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Circuit.cpp" />
+    <ClCompile Include="DigitalLogic.cpp" />
     <ClCompile Include="ErrorCorrection.cpp" />
     <ClCompile Include="ErrorDetectionNetwork.cpp" />
     <ClCompile Include="FiniteStateMachine.cpp" />
@@ -77,6 +78,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Circuit.h" />
+    <ClInclude Include="DigitalLogic.h" />
     <ClInclude Include="ErrorCorrection.h" />
     <ClInclude Include="ErrorDetectionNetwork.h" />
     <ClInclude Include="FiniteStateMachine.h" />

@@ -30,7 +30,7 @@ void main()
 	bool testRandNumGen = false;
 	bool testFSM = false;
 	bool testPowAnalysis = true;
-	bool seeOutput = false;
+	bool seeOutput = true;
 
 	if (testRandNumGen)
 	{
@@ -89,6 +89,12 @@ void main()
 
 	if (testPowAnalysis)
 	{
+		Circuit * circuit = new Circuit();
+
+		circuit->genRandomCircuit(100);
+		circuit->printGates();
+
+		delete circuit;
 
 		/*ScanChain * sc = new ScanChain(10);
 		sc->initScanChain(1);
@@ -102,7 +108,7 @@ void main()
 
 		delete sc;*/
 
-		seed = 120;
+		/*seed = 120;
 		srand(seed);
 		int step = 2;
 
@@ -253,7 +259,7 @@ void main()
 			delete trojanScan;
 
 			myfile.close();
-		}
+		}*/
 	}
 
 	if (seeOutput) while (true){}
