@@ -6,6 +6,7 @@
 #include <sstream>
 #include <time.h>
 #include "Circuit.h"
+#define _CRTDBG_MAP_ALLOC
 
 using namespace std;
 
@@ -30,7 +31,7 @@ void main()
 	bool testRandNumGen = false;
 	bool testFSM = false;
 	bool testPowAnalysis = true;
-	bool seeOutput = true;
+	bool seeOutput = false;
 
 	if (testRandNumGen)
 	{
@@ -89,10 +90,16 @@ void main()
 
 	if (testPowAnalysis)
 	{
+		int seed = 100;
+		int baseGates = 100;
+		int offsetGates = 100;
+		int offsetOutputs = 100;
 		Circuit * circuit = new Circuit();
 
-		circuit->genRandomCircuit(100);
-		circuit->printGates();
+		circuit->genRandomCircuit(seed,baseGates,offsetGates,offsetOutputs);
+		//circuit->printGates();
+
+		circuit->doPowerSimulation();
 
 		delete circuit;
 
@@ -261,6 +268,8 @@ void main()
 			myfile.close();
 		}*/
 	}
+
+	_CrtDumpMemoryLeaks();
 
 	if (seeOutput) while (true){}
 }

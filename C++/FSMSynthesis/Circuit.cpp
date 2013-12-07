@@ -47,20 +47,55 @@ Circuit::~Circuit()
 	delete myScanChainArr;
 }
 
-int Circuit::SimulateOneTest(bool genPower)
+int Circuit::SimulateStep()
 {
 	int numSwitches = 0;
 
+	vector<Wire *> wireChangeQueue;
+	for (int i = 0; i < myNumScan; i++)
+	{
+		for (int j = 0; j < mySizeScan; j++)
+		{
+			wireChangeQueue.push_back(myScanChainArr[i]->getFlopNet(j));
+		}
+	}
 
+	for (int i = 0; i < wireChangeQueue.size(); i++)
+	{
+		Wire * wire = wireChangeQueue.at(i);
+		for (int j = 0; j < myGates.size(); j++)
+		{
+
+		}
+	}
 
 	return numSwitches;
 }
 
-void Circuit::genRandomCircuit(int seed)
+int Circuit::doPowerSimulation()
 {
-	unsigned int baseGates = 100;
-	unsigned int offsetGates = 100;
-	unsigned int offsetOutputs = 100;
+	int numSwitches = 0;
+
+	//Initialization Step
+	for (int i = 0; i < myNumScan; i++)
+	{
+		myScanChainArr[i]->seedScanChain(i+1);
+	}
+
+	//Allow values to reach combinational steady state.
+	SimulateStep();
+
+	//The actual simulation
+
+	return numSwitches;
+}
+
+void Circuit::genRandomCircuit(int seed, unsigned int baseGates, 
+							   unsigned int offsetGates, unsigned int offsetOutputs)
+{
+	//unsigned int baseGates = 1000;
+	//unsigned int offsetGates = 1000;
+	//unsigned int offsetOutputs = 100;
 	unsigned int numiter = (rand() % offsetGates) + baseGates;
 
 	srand(seed);

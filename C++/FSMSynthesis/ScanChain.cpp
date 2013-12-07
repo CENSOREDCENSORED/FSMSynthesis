@@ -51,23 +51,28 @@ ScanChain::~ScanChain()
 	delete myRandNumGenerator;
 }
 
-void ScanChain::loadScanChain(int num)
+int ScanChain::loadScanChain(int num)
 {
+	int numSwitches = 0;
 	for (int i = 0; i < mySize; i++)
 	{
-		myFlopArr[i]->setVal(1 & (num >> i));
+		unsigned char oldVal = myFlopArr[i]->getVal();
+		unsigned char newVal = 1 & (num >> i);
+		if (oldVal != newVal) numSwitches++;
+		myFlopArr[i]->setVal(newVal);
 	}
+	return numSwitches;
 }
 
-void ScanChain::seedScanChain(unsigned long long seed)
+int ScanChain::seedScanChain(unsigned long long seed)
 {
 	myRandNumGenerator->seedRandNumGen(seed);
-	loadScanChain(seed);
+	return loadScanChain(seed);
 }
 
-void ScanChain::incrementScanChain()
+int ScanChain::incrementScanChain()
 {
-	loadScanChain(myRandNumGenerator->genRandNum());
+	return loadScanChain(myRandNumGenerator->genRandNum());
 }
 
 void ScanChain::printScanChain()

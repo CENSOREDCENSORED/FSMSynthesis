@@ -10,7 +10,7 @@ private:
 	Wire ** myFlopArr;
 	RandNumGenerator * myRandNumGenerator;
 
-	void loadScanChain(int);
+	int loadScanChain(int);
 
 public:
 	ScanChain();
@@ -18,8 +18,8 @@ public:
 	~ScanChain();
 
 	void initScanChain(int scanChainNum);
-	void seedScanChain(unsigned long long);
-	void incrementScanChain();
+	int seedScanChain(unsigned long long);
+	int incrementScanChain();
 	void printScanChain();
 
 	int getSize();
