@@ -60,6 +60,7 @@ int ScanChain::loadScanChain(int num)
 		unsigned char newVal = 1 & (num >> i);
 		if (oldVal != newVal) numSwitches++;
 		myFlopArr[i]->setVal(newVal);
+		myFlopArr[i]->advanceVal();
 	}
 	return numSwitches;
 }

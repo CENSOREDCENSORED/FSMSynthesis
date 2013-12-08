@@ -4,6 +4,7 @@
 Wire::Wire()
 {
 	myVal = 0;
+	myNewVal = 0;
 	isOutput = true;
 	isInput = true;
 }
@@ -14,7 +15,12 @@ Wire::~Wire()
 
 void Wire::setVal(unsigned char newVal)
 {
-	myVal = newVal;
+	myNewVal = newVal;
+}
+
+void Wire::advanceVal()
+{
+	myVal = myNewVal;
 }
 
 unsigned char Wire::getVal()
@@ -52,6 +58,10 @@ void Wire::setIsInput(bool val)
 	isInput = val;
 }
 
+unsigned char Wire::getNewVal()
+{
+	return myNewVal;
+}
 
 //NandGate
 NandGate::NandGate(Wire * in1, Wire * in2, Wire * out)
@@ -69,7 +79,7 @@ bool NandGate::genOutput()
 {
 	unsigned char origOut = myOut->getVal();
 	myOut->setVal((1 ^ (myIn1->getVal() & myIn2->getVal())) & 1);
-	return origOut != myOut->getVal();
+	return origOut != myOut->getNewVal();
 }
 
 Wire * NandGate::getOut()

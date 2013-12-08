@@ -31,18 +31,21 @@ void main()
 	bool testRandNumGen = false;
 	bool testFSM = false;
 	bool testPowAnalysis = true;
-	bool seeOutput = false;
+	bool seeOutput = true;
 
 	if (testRandNumGen)
 	{
-		RandNumGenerator * rng = new RandNumGenerator(0x19 >> 1);
+		RandNumGenerator * rng = new RandNumGenerator();
+		rng->setPolynomial(rng->getPolynomial(5)>>1);
 		rng->seedRandNumGen(1);
 		long long var = 1;
-		for (int i = 0; i < 100; i++)
+		for (int i = 0; i < 10; i++)
 		{
 			cout << var << endl;
 			var = rng->genRandNum();
 		}
+
+		delete rng;
 	}
 
 	//ErrorCorrection * ec = new ErrorCorrection();
@@ -91,17 +94,31 @@ void main()
 	if (testPowAnalysis)
 	{
 		int seed = 100;
-		int baseGates = 100;
-		int offsetGates = 100;
-		int offsetOutputs = 100;
-		Circuit * circuit = new Circuit();
+		int baseGates = 100000;
+		int offsetGates = 100000;
+		int offsetOutputs = 100000;
+		int numiter = 200;
 
-		circuit->genRandomCircuit(seed,baseGates,offsetGates,offsetOutputs);
+		int numScan = 4;
+		int sizeScan = 10;
+
+		Circuit * goldenCircuit = new Circuit(numScan, sizeScan, false);
+		Circuit * trojanCircuit = new Circuit(numScan, sizeScan, true);
+
+		goldenCircuit->genRandomCircuit(seed,baseGates,offsetGates,offsetOutputs);
+		trojanCircuit->genRandomCircuit(seed,baseGates,offsetGates,offsetOutputs);
 		//circuit->printGates();
 
-		circuit->doPowerSimulation();
+		goldenCircuit->seedScanChains();
+		trojanCircuit->seedScanChains();
 
-		delete circuit;
+		for (int i = 0; i < numiter; i++)
+		{
+			cout << goldenCircuit->genNextPowerMeasurement() << "," << trojanCircuit->genNextPowerMeasurement() << endl;
+		}
+
+		delete goldenCircuit;
+		delete trojanCircuit;
 
 		/*ScanChain * sc = new ScanChain(10);
 		sc->initScanChain(1);

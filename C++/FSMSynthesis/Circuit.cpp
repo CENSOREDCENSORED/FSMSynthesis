@@ -19,6 +19,7 @@ void Circuit::initCircuit(int numScan, int sizeScan, bool hasTrojan)
 {
 	mySizeScan = sizeScan;
 	myNumScan = numScan;
+	myHasTrojan = hasTrojan;
 
 	myScanChainArr = new ScanChain * [myNumScan];
 	for (int i = 0; i < myNumScan; i++)
@@ -51,31 +52,39 @@ int Circuit::SimulateStep()
 {
 	int numSwitches = 0;
 
-	vector<Wire *> wireChangeQueue;
-	for (int i = 0; i < myNumScan; i++)
+	bool iterateAgain = true;
+
+	while (iterateAgain)
 	{
-		for (int j = 0; j < mySizeScan; j++)
+		iterateAgain = false;
+		for (int i = 0; i < myGates.size(); i++)
 		{
-			wireChangeQueue.push_back(myScanChainArr[i]->getFlopNet(j));
+			NandGate * gate = myGates[i];
+			Wire * out = gate->getOut();
+
+			unsigned char oldOutputVal = out->getVal();
+
+			gate->genOutput();
+
+			if (out->getNewVal() != oldOutputVal)
+			{
+				iterateAgain = true;
+				//cout << out->getName() << endl;
+				numSwitches++;
+			}
 		}
-	}
 
-	for (int i = 0; i < wireChangeQueue.size(); i++)
-	{
-		Wire * wire = wireChangeQueue.at(i);
-		for (int j = 0; j < myGates.size(); j++)
+		for (int i = 0; i < myGates.size(); i++)
 		{
-
+			myGates[i]->getOut()->advanceVal();
 		}
 	}
 
 	return numSwitches;
 }
 
-int Circuit::doPowerSimulation()
+void Circuit::seedScanChains()
 {
-	int numSwitches = 0;
-
 	//Initialization Step
 	for (int i = 0; i < myNumScan; i++)
 	{
@@ -83,9 +92,24 @@ int Circuit::doPowerSimulation()
 	}
 
 	//Allow values to reach combinational steady state.
+	//cout << SimulateStep() << endl;
 	SimulateStep();
+}
 
-	//The actual simulation
+int Circuit::genNextPowerMeasurement()
+{
+	int numSwitches = 0;
+
+	for (int i = 0; i < myNumScan; i++)
+	{
+		numSwitches += myScanChainArr[i]->incrementScanChain();
+	}
+	numSwitches += SimulateStep();
+
+	if (myHasTrojan)
+	{
+		trojanWires.at(trojanIteration);
+	}
 
 	return numSwitches;
 }
@@ -93,12 +117,9 @@ int Circuit::doPowerSimulation()
 void Circuit::genRandomCircuit(int seed, unsigned int baseGates, 
 							   unsigned int offsetGates, unsigned int offsetOutputs)
 {
-	//unsigned int baseGates = 1000;
-	//unsigned int offsetGates = 1000;
-	//unsigned int offsetOutputs = 100;
-	unsigned int numiter = (rand() % offsetGates) + baseGates;
-
 	srand(seed);
+
+	unsigned int numiter = (rand() % offsetGates) + baseGates;
 
 	for (int i = 0; i < myNumScan; i++)
 	{
@@ -129,6 +150,33 @@ void Circuit::genRandomCircuit(int seed, unsigned int baseGates,
 		myWires.push_back(output);
 		myNonSCWires.push_back(output);
 		myGates.push_back(nandGate);
+	}
+
+	if (myHasTrojan)
+	{
+		//Put in trojan circuitry here
+		//assume between 10-19 steps to activate trojan
+		
+		trojanIteration = 0;
+		int numTrojanIterations = (rand() % 10) + 10;
+
+		for (int i = 0; i < numTrojanIterations; i++)
+		{
+			int numDependentWires = rand() % 4;
+			
+			//TODO: insert new gates maybe???
+			int wireIndex = rand() % myWires.size();
+			
+			trojanWires.push_back(myWires.at(wireIndex));
+		}
+
+		/*
+		int numTrojanGates = rand() % 10 + 10;
+		for (int i = numiter; i < numiter+numTrojanGates; i++)
+		{
+			
+		}
+		*/
 	}
 }
 

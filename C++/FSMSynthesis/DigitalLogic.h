@@ -7,6 +7,7 @@ class Wire
 {
 private:
 	unsigned char myVal;
+	unsigned char myNewVal;
 	string myName;
 	bool isOutput;
 	bool isInput;
@@ -17,6 +18,9 @@ public:
 
 	void setVal(unsigned char);
 	unsigned char getVal();
+	void advanceVal();
+	unsigned char getNewVal();
+
 	void setName(string );
 	string getName();
 	bool getIsOutput();

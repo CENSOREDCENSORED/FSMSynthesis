@@ -9,6 +9,9 @@ private:
 	vector<NandGate*> myGates;
 	vector<Wire*> myWires;
 	vector<Wire*> myNonSCWires;
+	vector<Wire*> trojanWires;
+	bool myHasTrojan;
+	int trojanIteration;
 
 public:
 	Circuit();
@@ -17,7 +20,8 @@ public:
 	~Circuit();
 
 	int SimulateStep();
-	int doPowerSimulation();
+	void seedScanChains();
+	int genNextPowerMeasurement();
 	void genRandomCircuit(int seed, unsigned int baseGates = 100, 
 							   unsigned int offsetGates = 100, unsigned int offsetOutputs = 100);
 
