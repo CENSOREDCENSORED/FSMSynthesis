@@ -114,6 +114,86 @@ int Circuit::genNextPowerMeasurement()
 	return numSwitches;
 }
 
+void Circuit::genAdder(int width, int baseWireIndex)
+{
+
+}
+
+void Circuit::genComparator(int width, int baseWireIndex)
+{
+	if (myWires.size() == 0)
+	{
+		for (int i = 0; i < myNumScan; i++)
+		{
+			for (int j = 0; j < mySizeScan; j++)
+			{
+				myWires.push_back(myScanChainArr[i]->getFlopNet(j));
+				//myWires.at(i*mySizeScan + j)->setIsOutput(false);
+			}
+		}
+	}
+
+	int bwi = baseWireIndex;
+	vector<Wire *> compOutputs;
+	//Only want to choose from existing wires, not ones added
+	int numWires = myWires.size();
+	for (int i = 0; i < width; i++)
+	{
+		int input1 = rand() % numWires;
+		int input2 = rand() % numWires;
+
+		Wire * in1 = myWires.at(input1);
+		Wire * in2 = myWires.at(input2);
+
+		Wire * outputIn1Inv = new Wire();
+		outputIn1Inv->setIsInput(false);
+		
+		Wire * outputIn2Inv = new Wire();
+		outputIn2Inv->setIsInput(false);
+		
+		Wire * outputNand1 = new Wire();
+		outputNand1->setIsInput(false);
+		
+		Wire * outputNand2 = new Wire();
+		outputNand2->setIsInput(false);
+		
+		Wire * outputNand3 = new Wire();
+		outputNand3->setIsInput(false);
+
+
+		addGate(in1,in1,outputIn1Inv,bwi++);
+		addGate(in2,in2,outputIn2Inv,bwi++);
+		addGate(in1, outputIn2Inv, outputNand1, bwi++);
+		addGate(outputIn1Inv, in2, outputNand2, bwi++);
+		addGate(outputNand1, outputNand2, outputNand3, bwi++);
+
+		compOutputs.push_back(outputNand3);
+	}
+
+
+}
+
+void Circuit::genMux(int width, int numSelects, int baseWireIndex)
+{
+
+}
+
+void Circuit::addGate(Wire * in1, Wire * in2, Wire * out, int baseWireIndex)
+{
+	NandGate * nandGate = new NandGate(in1, in2, out);
+
+	string name = "Wire";
+	ostringstream convert;
+	convert << baseWireIndex;
+	name.append(convert.str());
+	out->setName(name);
+
+	myWires.push_back(out);
+	myNonSCWires.push_back(out);
+	myGates.push_back(nandGate);
+
+}
+
 void Circuit::genRandomCircuit(int seed, unsigned int baseGates, 
 							   unsigned int offsetGates, unsigned int offsetOutputs)
 {
@@ -121,12 +201,15 @@ void Circuit::genRandomCircuit(int seed, unsigned int baseGates,
 
 	unsigned int numiter = (rand() % offsetGates) + baseGates;
 
-	for (int i = 0; i < myNumScan; i++)
+	if (myWires.size() == 0)
 	{
-		for (int j = 0; j < mySizeScan; j++)
+		for (int i = 0; i < myNumScan; i++)
 		{
-			myWires.push_back(myScanChainArr[i]->getFlopNet(j));
-			//myWires.at(i*mySizeScan + j)->setIsOutput(false);
+			for (int j = 0; j < mySizeScan; j++)
+			{
+				myWires.push_back(myScanChainArr[i]->getFlopNet(j));
+				//myWires.at(i*mySizeScan + j)->setIsOutput(false);
+			}
 		}
 	}
 
@@ -139,17 +222,9 @@ void Circuit::genRandomCircuit(int seed, unsigned int baseGates,
 		int input2 = rand() % numWires;
 		Wire * output = new Wire();
 		output->setIsInput(false);
-		NandGate * nandGate = new NandGate(myWires.at(input1), myWires.at(input2), output);
-		
-		string name = "Wire";
-		ostringstream convert;
-		convert << i;
-		name.append(convert.str());
-		output->setName(name);
 
-		myWires.push_back(output);
-		myNonSCWires.push_back(output);
-		myGates.push_back(nandGate);
+		addGate(myWires.at(input1), myWires.at(input2), output, i);
+		
 	}
 
 	if (myHasTrojan)

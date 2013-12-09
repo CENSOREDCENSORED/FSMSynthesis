@@ -22,6 +22,10 @@ public:
 	int SimulateStep();
 	void seedScanChains();
 	int genNextPowerMeasurement();
+	void genAdder(int, int);
+	void genComparator(int, int);
+	void genMux(int, int, int);
+	void addGate(Wire *, Wire *, Wire *, int);
 	void genRandomCircuit(int seed, unsigned int baseGates = 100, 
 							   unsigned int offsetGates = 100, unsigned int offsetOutputs = 100);
 

@@ -93,6 +93,18 @@ void main()
 
 	if (testPowAnalysis)
 	{
+		Circuit * comparatorCircuit = new Circuit(1, 6, false);
+		comparatorCircuit->genComparator(3, 0);
+		comparatorCircuit->printGates();
+		comparatorCircuit->seedScanChains();
+		for (int i = 0; i < 100; i++)
+		{
+			cout << comparatorCircuit->genNextPowerMeasurement() << endl;
+		}
+
+		delete comparatorCircuit;
+
+		/*
 		int seed = 100;
 		int baseGates = 100000;
 		int offsetGates = 100000;
@@ -118,7 +130,7 @@ void main()
 		}
 
 		delete goldenCircuit;
-		delete trojanCircuit;
+		delete trojanCircuit;*/
 
 		/*ScanChain * sc = new ScanChain(10);
 		sc->initScanChain(1);
