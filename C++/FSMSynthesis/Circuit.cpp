@@ -114,12 +114,15 @@ int Circuit::genNextPowerMeasurement()
 	return numSwitches;
 }
 
-void Circuit::genAdder(int width, int baseWireIndex)
+Wire * Circuit::genWireNonInput()
 {
+	Wire * newWire = new Wire();
+	newWire->setIsInput(false);
 
+	return newWire;
 }
 
-void Circuit::genComparator(int width, int baseWireIndex)
+int Circuit::genAdder(int width, int baseWireIndex)
 {
 	if (myWires.size() == 0)
 	{
@@ -134,7 +137,76 @@ void Circuit::genComparator(int width, int baseWireIndex)
 	}
 
 	int bwi = baseWireIndex;
-	vector<Wire *> compOutputs;
+
+	//Only want to choose from existing wires, not ones added
+	int numWires = myWires.size();
+	vector<Wire *> carryOuts;
+
+	for (int i = 0; i < width; i++)
+	{
+		int input1 = rand() % numWires;
+		int input2 = rand() % numWires;
+
+		Wire * in1 = myWires.at(input1);
+		Wire * in2 = myWires.at(input2);
+		Wire * carryIn;
+		if (i == 0)
+		{
+			int input3 = rand() % numWires;
+			carryIn = myWires.at(input3);
+		}
+		else
+		{
+			carryIn = carryOuts.at(carryOuts.size()-1);
+		}
+
+		//Generate the sum
+		Wire * in1XORin2 = genWireNonInput();
+
+		bwi = addXORGate(in1, in2, in1XORin2, bwi);
+
+		Wire * sumOutput = genWireNonInput();
+
+		bwi = addXORGate(in1XORin2, carryIn, sumOutput, bwi);
+
+		//Generate the carry
+		Wire * nandOutput1 = genWireNonInput();
+		Wire * nandOutput2 = genWireNonInput();
+		Wire * nandOutput3 = genWireNonInput();
+
+		bwi = addNANDGate(in1, in2, nandOutput1, bwi);
+		bwi = addNANDGate(in1, carryIn, nandOutput2, bwi);
+		bwi = addNANDGate(carryIn, in2, nandOutput3, bwi);
+
+		Wire * carryOut = genWireNonInput();
+		
+		Wire * AndOutput1 = genWireNonInput();
+		bwi = addANDGate(nandOutput1, nandOutput2, AndOutput1, bwi);
+		bwi = addANDGate(AndOutput1, nandOutput3, carryOut, bwi);
+
+		carryOuts.push_back(carryOut);
+
+	}
+
+	return bwi;
+}
+
+int Circuit::genComparator(int width, int baseWireIndex)
+{
+	if (myWires.size() == 0)
+	{
+		for (int i = 0; i < myNumScan; i++)
+		{
+			for (int j = 0; j < mySizeScan; j++)
+			{
+				myWires.push_back(myScanChainArr[i]->getFlopNet(j));
+				//myWires.at(i*mySizeScan + j)->setIsOutput(false);
+			}
+		}
+	}
+
+	int bwi = baseWireIndex;
+	vector<Wire *> * compOutputs = new vector<Wire *>();
 	//Only want to choose from existing wires, not ones added
 	int numWires = myWires.size();
 	for (int i = 0; i < width; i++)
@@ -144,41 +216,80 @@ void Circuit::genComparator(int width, int baseWireIndex)
 
 		Wire * in1 = myWires.at(input1);
 		Wire * in2 = myWires.at(input2);
+		Wire * in1XORin2 = genWireNonInput();
+		bwi = addXORGate(in1, in2, in1XORin2, bwi);
 
-		Wire * outputIn1Inv = new Wire();
-		outputIn1Inv->setIsInput(false);
-		
-		Wire * outputIn2Inv = new Wire();
-		outputIn2Inv->setIsInput(false);
-		
-		Wire * outputNand1 = new Wire();
-		outputNand1->setIsInput(false);
-		
-		Wire * outputNand2 = new Wire();
-		outputNand2->setIsInput(false);
-		
-		Wire * outputNand3 = new Wire();
-		outputNand3->setIsInput(false);
-
-
-		addGate(in1,in1,outputIn1Inv,bwi++);
-		addGate(in2,in2,outputIn2Inv,bwi++);
-		addGate(in1, outputIn2Inv, outputNand1, bwi++);
-		addGate(outputIn1Inv, in2, outputNand2, bwi++);
-		addGate(outputNand1, outputNand2, outputNand3, bwi++);
-
-		compOutputs.push_back(outputNand3);
+		compOutputs->push_back(in1XORin2);
 	}
 
+	//TODO: Implement the final big AND gate
+	if (compOutputs->size() > 1)
+	{
+		vector<Wire *> * newCompOutputs = new vector<Wire *>;
+		for (int i = 0; i < compOutputs->size(); i = i + 2)
+		{
+			if ((i+1) == compOutputs->size())
+			{
+				newCompOutputs->push_back(compOutputs->at(i));
+			}
 
+			Wire * newOutput = genWireNonInput();
+
+			bwi = addANDGate(compOutputs->at(i), compOutputs->at(i+1), newOutput, bwi);
+
+			newCompOutputs->push_back(newOutput);
+		}
+
+		delete newCompOutputs;
+	}
+
+	delete compOutputs;
+
+	return bwi;
 }
 
-void Circuit::genMux(int width, int numSelects, int baseWireIndex)
+int Circuit::genMux(int width, int numSelects, int baseWireIndex)
 {
+	int bwi = baseWireIndex;
+
+	return bwi;
+}
+
+int Circuit::addANDGate(Wire * in1, Wire * in2, Wire * out, int baseWireIndex)
+{
+	int bwi = baseWireIndex;
+
+	Wire * nandOut = genWireNonInput();
+
+	addNANDGate(in1,in2,nandOut,bwi++);
+	addNANDGate(nandOut,nandOut,out,bwi++);
+
+	return bwi;
 
 }
 
-void Circuit::addGate(Wire * in1, Wire * in2, Wire * out, int baseWireIndex)
+int Circuit::addXORGate(Wire * in1, Wire * in2, Wire * out, int baseWireIndex)
+{
+	int bwi = baseWireIndex;
+	Wire * outputIn1Inv = genWireNonInput();
+		
+	Wire * outputIn2Inv = genWireNonInput();
+		
+	Wire * outputNand1 = genWireNonInput();
+		
+	Wire * outputNand2 = genWireNonInput();
+
+
+	bwi = addNANDGate(in1,in1,outputIn1Inv,bwi);
+	bwi = addNANDGate(in2,in2,outputIn2Inv,bwi);
+	bwi = addNANDGate(in1, outputIn2Inv, outputNand1, bwi);
+	bwi = addNANDGate(outputIn1Inv, in2, outputNand2, bwi);
+	bwi = addNANDGate(outputNand1, outputNand2, out, bwi);
+
+	return bwi;
+}
+
+int Circuit::addNANDGate(Wire * in1, Wire * in2, Wire * out, int baseWireIndex)
 {
 	NandGate * nandGate = new NandGate(in1, in2, out);
 
@@ -192,6 +303,7 @@ void Circuit::addGate(Wire * in1, Wire * in2, Wire * out, int baseWireIndex)
 	myNonSCWires.push_back(out);
 	myGates.push_back(nandGate);
 
+	return baseWireIndex + 1;
 }
 
 void Circuit::genRandomCircuit(int seed, unsigned int baseGates, 
@@ -220,10 +332,9 @@ void Circuit::genRandomCircuit(int seed, unsigned int baseGates,
 		int numWires = myWires.size();
 		int input1 = rand() % numWires;
 		int input2 = rand() % numWires;
-		Wire * output = new Wire();
-		output->setIsInput(false);
+		Wire * output = genWireNonInput();
 
-		addGate(myWires.at(input1), myWires.at(input2), output, i);
+		addNANDGate(myWires.at(input1), myWires.at(input2), output, i);
 		
 	}
 

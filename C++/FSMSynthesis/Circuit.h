@@ -13,6 +13,8 @@ private:
 	bool myHasTrojan;
 	int trojanIteration;
 
+	Wire * genWireNonInput();
+
 public:
 	Circuit();
 	Circuit(int numScan, int sizeScan, bool hasTrojan);
@@ -22,10 +24,12 @@ public:
 	int SimulateStep();
 	void seedScanChains();
 	int genNextPowerMeasurement();
-	void genAdder(int, int);
-	void genComparator(int, int);
-	void genMux(int, int, int);
-	void addGate(Wire *, Wire *, Wire *, int);
+	int genAdder(int, int);
+	int genComparator(int, int);
+	int genMux(int, int, int);
+	int addNANDGate(Wire *, Wire *, Wire *, int);
+	int addANDGate(Wire *, Wire *, Wire *, int);
+	int addXORGate(Wire *, Wire *, Wire *, int);
 	void genRandomCircuit(int seed, unsigned int baseGates = 100, 
 							   unsigned int offsetGates = 100, unsigned int offsetOutputs = 100);
 
