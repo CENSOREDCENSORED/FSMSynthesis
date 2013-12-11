@@ -95,11 +95,11 @@ void main()
 	{
 		int seed = 100;
 		int baseGates = 100000;
-		int offsetGates = 100000;
+		int offsetGates = 10000;
 		int offsetOutputs = 100000;
 		int numiter = 200;
 
-		int numScan = 4;
+		int numScan = 20;
 		int sizeScan = 10;
 
 		Circuit * goldenCircuit = new Circuit(numScan, sizeScan, false);
@@ -107,7 +107,7 @@ void main()
 
 		goldenCircuit->genRandomCircuit(seed,baseGates,offsetGates,offsetOutputs);
 		trojanCircuit->genRandomCircuit(seed,baseGates,offsetGates,offsetOutputs);
-		//circuit->printGates();
+		//goldenCircuit->printGates();
 
 		goldenCircuit->seedScanChains();
 		trojanCircuit->seedScanChains();

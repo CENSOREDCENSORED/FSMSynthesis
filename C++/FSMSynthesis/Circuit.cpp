@@ -223,7 +223,7 @@ int Circuit::genComparator(int width, int baseWireIndex)
 	}
 
 	//TODO: Implement the final big AND gate
-	if (compOutputs->size() > 1)
+	while (compOutputs->size() > 1)
 	{
 		vector<Wire *> * newCompOutputs = new vector<Wire *>;
 		for (int i = 0; i < compOutputs->size(); i = i + 2)
@@ -240,7 +240,8 @@ int Circuit::genComparator(int width, int baseWireIndex)
 			newCompOutputs->push_back(newOutput);
 		}
 
-		delete newCompOutputs;
+		delete compOutputs;
+		compOutputs = newCompOutputs;
 	}
 
 	delete compOutputs;
@@ -250,7 +251,34 @@ int Circuit::genComparator(int width, int baseWireIndex)
 
 int Circuit::genMux(int width, int numSelects, int baseWireIndex)
 {
+	if (myWires.size() == 0)
+	{
+		for (int i = 0; i < myNumScan; i++)
+		{
+			for (int j = 0; j < mySizeScan; j++)
+			{
+				myWires.push_back(myScanChainArr[i]->getFlopNet(j));
+				//myWires.at(i*mySizeScan + j)->setIsOutput(false);
+			}
+		}
+	}
+
 	int bwi = baseWireIndex;
+	
+	//Only want to choose from existing wires, not ones added
+	int numWires = myWires.size();
+
+	for (int i = 0; i < width; i++)
+	{
+		int input1 = rand() % numWires;
+		int input2 = rand() % numWires;
+
+		Wire * in1 = myWires.at(input1);
+		Wire * in2 = myWires.at(input2);
+		Wire * in1XORin2 = genWireNonInput();
+		bwi = addXORGate(in1, in2, in1XORin2, bwi);
+	}
+
 
 	return bwi;
 }
@@ -329,12 +357,33 @@ void Circuit::genRandomCircuit(int seed, unsigned int baseGates,
 
 	for (int i = 0; i < numiter; i++)
 	{
-		int numWires = myWires.size();
-		int input1 = rand() % numWires;
-		int input2 = rand() % numWires;
-		Wire * output = genWireNonInput();
+		//10% chance of making an adder, MUX, or comparator
+		int genAlternateCircuit = rand() % 30;
 
-		addNANDGate(myWires.at(input1), myWires.at(input2), output, i);
+		if (genAlternateCircuit == 0)
+		{
+			i = genAdder(32, i);
+			cout << "Adder" << endl;
+		}
+		else if (genAlternateCircuit == 1)
+		{
+			i = genComparator(32, i);
+			cout << "Comparator" << endl;
+		}
+		else if (genAlternateCircuit == 2)
+		{
+			i = genMux(32, 1, i);
+			cout << "MUX" << endl;
+		}
+		else
+		{
+			int numWires = myWires.size();
+			int input1 = rand() % numWires;
+			int input2 = rand() % numWires;
+			Wire * output = genWireNonInput();
+
+			addNANDGate(myWires.at(input1), myWires.at(input2), output, i);
+		}
 		
 	}
 
