@@ -105,16 +105,41 @@ void main()
 		Circuit * goldenCircuit = new Circuit(numScan, sizeScan, false);
 		Circuit * trojanCircuit = new Circuit(numScan, sizeScan, true);
 
+		
+		int secs1 = time(NULL);
 		goldenCircuit->genRandomCircuit(seed,baseGates,offsetGates,offsetOutputs);
-		trojanCircuit->genRandomCircuit(seed,baseGates,offsetGates,offsetOutputs);
-		//goldenCircuit->printGates();
+		int secs2 = time(NULL);
+		cout << "Generated in " << secs2 - secs1 << " seconds. Golden Circuit ";
+		goldenCircuit->printNumGates();
 
+		secs1 = time(NULL);
+		trojanCircuit->genRandomCircuit(seed,baseGates,offsetGates,offsetOutputs);
+		secs2 = time(NULL);
+		cout << "Generated in " << secs2 - secs1 << " seconds. Trojan Circuit ";
+		goldenCircuit->printNumGates();
+
+		secs1 = time(NULL);
 		goldenCircuit->seedScanChains();
+		secs2 = time(NULL);
+		cout << "Golden circuit seeded in " << secs2 - secs1 << " seconds." << endl;
+		
+		secs1 = time(NULL);
 		trojanCircuit->seedScanChains();
+		secs2 = time(NULL);
+		cout << "Trojan circuit seeded in " << secs2 - secs1 << " seconds." << endl;
 
 		for (int i = 0; i < numiter; i++)
 		{
+			if (i % 10 == 0)
+			{
+				secs1 = time(NULL);
+			}
 			cout << goldenCircuit->genNextPowerMeasurement() << "," << trojanCircuit->genNextPowerMeasurement() << endl;
+			if (i % 10 == 9)
+			{
+				secs2 = time(NULL);
+				cout << "Generated in " << secs2 - secs1 << " seconds" << endl;
+			}
 		}
 
 		delete goldenCircuit;

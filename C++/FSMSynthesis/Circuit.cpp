@@ -268,15 +268,24 @@ int Circuit::genMux(int width, int numSelects, int baseWireIndex)
 	//Only want to choose from existing wires, not ones added
 	int numWires = myWires.size();
 
+	vector <Wire *> selectLines;
+	vector <Wire *> selectLinesComplemented;
+	int maxVal = 1 << (numSelects-1);
+	for (int i = 0; i < maxVal; i++)
+	{
+
+		//selectLines.push_back(
+	}
+
 	for (int i = 0; i < width; i++)
 	{
 		int input1 = rand() % numWires;
 		int input2 = rand() % numWires;
 
-		Wire * in1 = myWires.at(input1);
+		/*Wire * in1 = myWires.at(input1);
 		Wire * in2 = myWires.at(input2);
 		Wire * in1XORin2 = genWireNonInput();
-		bwi = addXORGate(in1, in2, in1XORin2, bwi);
+		bwi = addXORGate(in1, in2, in1XORin2, bwi);*/
 	}
 
 
@@ -363,18 +372,19 @@ void Circuit::genRandomCircuit(int seed, unsigned int baseGates,
 		if (genAlternateCircuit == 0)
 		{
 			i = genAdder(32, i);
-			cout << "Adder" << endl;
+			//cout << "Adder" << endl;
 		}
 		else if (genAlternateCircuit == 1)
 		{
 			i = genComparator(32, i);
-			cout << "Comparator" << endl;
+			//cout << "Comparator" << endl;
 		}
 		else if (genAlternateCircuit == 2)
 		{
 			i = genMux(32, 1, i);
-			cout << "MUX" << endl;
+			//cout << "MUX" << endl;
 		}
+		//if (false){}
 		else
 		{
 			int numWires = myWires.size();
@@ -427,4 +437,9 @@ void Circuit::printGates()
 void Circuit::genVerilog()
 {
 
+}
+
+void Circuit::printNumGates()
+{
+	cout << "Number of NAND gates: " << myGates.size() << endl;
 }

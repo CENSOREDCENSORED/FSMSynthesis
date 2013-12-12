@@ -35,5 +35,7 @@ public:
 
 	void printGates();
 	void genVerilog();
+
+	void printNumGates();
 };
 
