@@ -15,6 +15,80 @@ int measurePower(int var, int modVal)
 	return (rand() % modVal) + modVal;
 }
 
+double doSimulation(int numiter, bool doTimings, int timingIteration, int noiseMargin, Circuit * goldenCircuit, 
+				  Circuit * trojanCircuit, int numInitialResults, int * highestPowResults, unsigned long long ** highestPowScanChains, 
+				  bool printPower, int index)
+{
+	int secs1;
+	int secs2;
+	int totalSum = 0;
+	for (int i = 0; i < numiter; i++)
+	{
+		if (doTimings && i % timingIteration == 0)
+		{
+			secs1 = time(NULL);
+		}
+
+		//Pseudorandom normal distrubtion
+		int noiseTrojan = 0; 
+		int noiseGolden = 0;
+		for (int i = 0; i < 16; i++)
+		{
+			noiseTrojan += (rand() % (2*noiseMargin+1)) - noiseMargin;
+			noiseGolden += (rand() % (2*noiseMargin+1)) - noiseMargin;
+		}
+
+		noiseTrojan /= 16;
+		noiseGolden /= 16;
+
+		int goldenPower = goldenCircuit->genNextPowerMeasurement(index) + noiseGolden;
+		goldenPower = goldenPower < 0 ? 0 : goldenPower;
+		int trojanPower = trojanCircuit->genNextPowerMeasurement(index) + noiseTrojan;
+		trojanPower = trojanPower < 0 ? 0 : trojanPower;
+
+		int difference = trojanPower - goldenPower;
+		totalSum += difference;
+
+		int minIndex = -1;
+
+		for (int numResultsIndex = 0; numResultsIndex < numInitialResults; numResultsIndex++)
+		{
+			int powResult = highestPowResults[numResultsIndex];
+			if (difference > powResult)
+			{
+				minIndex = numResultsIndex;
+			}
+		}
+
+		if (minIndex > -1)
+		{
+			highestPowResults[minIndex] = difference;
+			if (highestPowScanChains[minIndex] != 0)
+			{
+				delete highestPowScanChains[minIndex];
+			}
+			highestPowScanChains[minIndex] = goldenCircuit->getScanChainVals();
+
+		}
+
+		//bool trojanDetected = (trojanPower != goldenPower);
+		//string printString = "";//trojanDetected ? "Trojan Detected" : "Trojan Not Detected";
+		if (printPower)
+		{
+			cout << goldenPower << "," << trojanPower //<< "," << printString 
+			<< endl;
+		}
+			
+		if (doTimings && i % timingIteration == timingIteration-1)
+		{
+			secs2 = time(NULL);
+			cout << "Generated in " << secs2 - secs1 << " seconds" << endl;
+		}
+	}
+
+	return totalSum * 1.0 / numiter;
+}
+
 void main()
 {
 	int seed = 100;
@@ -93,17 +167,35 @@ void main()
 
 	if (testPowAnalysis)
 	{
-		int seed = 100;
-		int baseGates = 100000;
-		int offsetGates = 10000;
-		int offsetOutputs = 100000;
-		int numiter = 200;
+		bool doTimings = false;
+		int timingIteration = 100;
+		bool printPower = false;
+		bool printMaxScanChains = false;
+
+		seed = time(NULL);
+		int baseGates = 1000;
+		int offsetGates = 1000;
+		int offsetOutputs = 1000;
+		int numiter = 3000;
+		
+		int noiseMargin = 10000;
 
 		int numScan = 20;
 		int sizeScan = 10;
 
+		int numInitialResults = 100;
+
+		int * highestPowResults = new int[numInitialResults];
+		unsigned long long ** highestPowScanChains = new unsigned long long * [numInitialResults];
+
+		for (int i = 0; i < numInitialResults; i++)
+		{
+			highestPowResults[i] = 0;
+			highestPowScanChains[i] = 0;
+		}
+
 		Circuit * goldenCircuit = new Circuit(numScan, sizeScan, false);
-		Circuit * trojanCircuit = new Circuit(numScan, sizeScan, true);
+		Circuit * trojanCircuit = new Circuit(numScan, sizeScan, false);
 
 		
 		int secs1 = time(NULL);
@@ -116,7 +208,7 @@ void main()
 		trojanCircuit->genRandomCircuit(seed,baseGates,offsetGates,offsetOutputs);
 		secs2 = time(NULL);
 		cout << "Generated in " << secs2 - secs1 << " seconds. Trojan Circuit ";
-		goldenCircuit->printNumGates();
+		trojanCircuit->printNumGates();
 
 		secs1 = time(NULL);
 		goldenCircuit->seedScanChains();
@@ -128,19 +220,130 @@ void main()
 		secs2 = time(NULL);
 		cout << "Trojan circuit seeded in " << secs2 - secs1 << " seconds." << endl;
 
-		for (int i = 0; i < numiter; i++)
+
+		//SIMULATION PORTION
+		double average = doSimulation(numiter, doTimings, timingIteration, noiseMargin, goldenCircuit, 
+				  trojanCircuit, numInitialResults, highestPowResults, highestPowScanChains, printPower,
+				  -1);
+		
+		cout << average << endl;
+
+		int highestPowIndex = -1;
+		int highestPowVal = 0;
+		for (int i = 0; i < numInitialResults; i++)
 		{
-			if (i % 10 == 0)
+			if (highestPowResults[i] > highestPowVal) 
 			{
-				secs1 = time(NULL);
-			}
-			cout << goldenCircuit->genNextPowerMeasurement() << "," << trojanCircuit->genNextPowerMeasurement() << endl;
-			if (i % 10 == 9)
-			{
-				secs2 = time(NULL);
-				cout << "Generated in " << secs2 - secs1 << " seconds" << endl;
+				highestPowVal = highestPowResults[i];
+				highestPowIndex = i;
 			}
 		}
+
+		cout << highestPowVal << endl;
+
+		double maxAverage = 0;
+		int maxScanChain = -1;
+
+		for (int i = 0; i < goldenCircuit->getNumScanChains(); i++)
+		{
+			//int * nextHighestPowResults = new int[numInitialResults];
+			//unsigned long long ** nextHighestPowScanChains = new unsigned long long * [numInitialResults];
+			if (highestPowScanChains[highestPowIndex] != 0)
+			{
+				goldenCircuit->seedScanChains(highestPowScanChains[highestPowIndex], goldenCircuit->getNumScanChains());
+				trojanCircuit->seedScanChains(highestPowScanChains[highestPowIndex], goldenCircuit->getNumScanChains());
+				average = doSimulation(numiter, doTimings, timingIteration, noiseMargin, goldenCircuit, 
+						  trojanCircuit, numInitialResults, highestPowResults, highestPowScanChains, printPower,
+						  i);
+				cout << average << endl;
+
+				if (average > maxAverage) 
+				{
+					maxScanChain = i;
+					maxAverage = average;
+				}
+
+				highestPowIndex = -1;
+				highestPowVal = 0;
+				for (int i = 0; i < numInitialResults; i++)
+				{
+					if (highestPowResults[i] > highestPowVal) 
+					{
+						highestPowVal = highestPowResults[i];
+						highestPowIndex = i;
+					}
+				}
+
+				//cout << highestPowVal << endl;
+			}
+		}
+
+		cout << maxScanChain << "," << maxAverage << endl;
+
+		double oldMaxAverage = maxAverage;
+
+		for (int i = 0; i < numInitialResults; i++)
+		{
+			unsigned long long * scanChainSeeds = highestPowScanChains[i];
+			goldenCircuit->seedScanChains(scanChainSeeds, goldenCircuit->getNumScanChains());
+			trojanCircuit->seedScanChains(scanChainSeeds, goldenCircuit->getNumScanChains());
+			
+			average = doSimulation(numiter, doTimings, timingIteration, noiseMargin, goldenCircuit, 
+						trojanCircuit, numInitialResults, highestPowResults, highestPowScanChains, printPower,
+						maxScanChain);
+			cout << average << endl;
+
+			if (average > maxAverage) 
+				{
+					//maxScanChain = i;
+					maxAverage = average;
+				}
+
+				highestPowIndex = -1;
+				highestPowVal = 0;
+				for (int i = 0; i < numInitialResults; i++)
+				{
+					if (highestPowResults[i] > highestPowVal) 
+					{
+						highestPowVal = highestPowResults[i];
+						highestPowIndex = i;
+					}
+				}
+
+				//cout << highestPowVal << endl;
+		}
+
+		cout << oldMaxAverage << "," << maxAverage << endl;
+
+		//DEBUG STATEMENT
+
+		if (printMaxScanChains)
+		{
+			for (int i = 0; i < numInitialResults; i++)
+			{
+
+				cout << highestPowResults[i];
+
+				if (highestPowScanChains[i] != 0) 
+				{
+					for (int j = 0; j < goldenCircuit->getNumScanChains(); j++)
+					{
+						cout << "," << highestPowScanChains[i][j];
+					}
+				}
+
+				cout << endl;
+			} 
+		}
+
+
+		delete highestPowResults;
+
+		for (int i = 0; i < numInitialResults; i++)
+		{
+			if (highestPowScanChains[i] != 0) delete highestPowScanChains[i];
+		}
+		delete highestPowScanChains;
 
 		delete goldenCircuit;
 		delete trojanCircuit;

@@ -78,3 +78,8 @@ unsigned long long RandNumGenerator::getPolynomial(int degree)
 {
 	return irreduciblePolynomials[degree];
 }
+
+unsigned long long RandNumGenerator::getCurrNum()
+{
+	return myCurrnum;
+}

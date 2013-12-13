@@ -22,8 +22,8 @@ public:
 	~Circuit();
 
 	int SimulateStep();
-	void seedScanChains();
-	int genNextPowerMeasurement();
+	void seedScanChains(unsigned long long * seeds = 0, int numSeeds = 0);
+	int genNextPowerMeasurement(int scanChainIncrementIndex = -1);
 	int genAdder(int, int);
 	int genComparator(int, int);
 	int genMux(int, int, int);
@@ -37,5 +37,8 @@ public:
 	void genVerilog();
 
 	void printNumGates();
+
+	unsigned long long * getScanChainVals();
+	int getNumScanChains();
 };
 

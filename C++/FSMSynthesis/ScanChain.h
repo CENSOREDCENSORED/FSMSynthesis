@@ -24,5 +24,6 @@ public:
 
 	int getSize();
 	unsigned char getFlopVal(int);
+	unsigned long long getCurrNum();
 	Wire * getFlopNet(int);
 };

@@ -99,3 +99,7 @@ Wire * ScanChain::getFlopNet(int index)
 	return myFlopArr[index];
 }
 
+unsigned long long ScanChain::getCurrNum()
+{
+	return myRandNumGenerator->getCurrNum();
+}

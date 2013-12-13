@@ -23,4 +23,5 @@ public:
 	void setPolynomial(unsigned long long polynomial);
 	void seedRandNumGen(unsigned long long seed);
 	unsigned long long getPolynomial(int);
+	unsigned long long getCurrNum();
 };

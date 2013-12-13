@@ -83,33 +83,49 @@ int Circuit::SimulateStep()
 	return numSwitches;
 }
 
-void Circuit::seedScanChains()
+void Circuit::seedScanChains(unsigned long long * seeds, int numSeeds)
 {
 	//Initialization Step
-	for (int i = 0; i < myNumScan; i++)
+	if (seeds == 0)
 	{
-		myScanChainArr[i]->seedScanChain(i+1);
+		for (int i = 0; i < myNumScan; i++)
+		{
+			myScanChainArr[i]->seedScanChain(i+1);
+		} 
 	}
-
+	else
+	{
+		for (int i = 0; i < numSeeds; i++)
+		{
+			myScanChainArr[i]->seedScanChain(seeds[i]);
+		}
+	}
 	//Allow values to reach combinational steady state.
 	//cout << SimulateStep() << endl;
 	SimulateStep();
 }
 
-int Circuit::genNextPowerMeasurement()
+int Circuit::genNextPowerMeasurement(int scanChainIncrementIndex)
 {
 	int numSwitches = 0;
 
-	for (int i = 0; i < myNumScan; i++)
+	if (scanChainIncrementIndex > -1)
 	{
-		numSwitches += myScanChainArr[i]->incrementScanChain();
+		numSwitches += myScanChainArr[scanChainIncrementIndex]->incrementScanChain();
+	}
+	else
+	{
+		for (int i = 0; i < myNumScan; i++)
+		{
+			numSwitches += myScanChainArr[i]->incrementScanChain();
+		}
 	}
 	numSwitches += SimulateStep();
 
-	if (myHasTrojan)
+	/*if (myHasTrojan)
 	{
 		trojanWires.at(trojanIteration);
-	}
+	}*/
 
 	return numSwitches;
 }
@@ -402,7 +418,14 @@ void Circuit::genRandomCircuit(int seed, unsigned int baseGates,
 		//Put in trojan circuitry here
 		//assume between 10-19 steps to activate trojan
 		
-		trojanIteration = 0;
+		int numWires = myWires.size();
+		int input1 = rand() % numWires;
+		int input2 = rand() % numWires;
+		Wire * output = genWireNonInput();
+
+		addNANDGate(myWires.at(input1), myWires.at(input2), output, numiter);
+
+		/*trojanIteration = 0;
 		int numTrojanIterations = (rand() % 10) + 10;
 
 		for (int i = 0; i < numTrojanIterations; i++)
@@ -415,7 +438,7 @@ void Circuit::genRandomCircuit(int seed, unsigned int baseGates,
 			trojanWires.push_back(myWires.at(wireIndex));
 		}
 
-		/*
+		
 		int numTrojanGates = rand() % 10 + 10;
 		for (int i = numiter; i < numiter+numTrojanGates; i++)
 		{
@@ -443,3 +466,20 @@ void Circuit::printNumGates()
 {
 	cout << "Number of NAND gates: " << myGates.size() << endl;
 }
+
+unsigned long long * Circuit:: getScanChainVals()
+{
+	unsigned long long * scVals = new unsigned long long[myNumScan];
+	for (int i = 0; i < myNumScan; i++)
+	{
+		ScanChain * sc = myScanChainArr[i];
+		scVals[i] = sc->getCurrNum();
+	}
+	return scVals;
+}
+
+int Circuit::getNumScanChains()
+{
+	return myNumScan;
+}
+
