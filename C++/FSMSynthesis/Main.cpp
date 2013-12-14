@@ -176,7 +176,7 @@ void main()
 		int baseGates = 1000;
 		int offsetGates = 1000;
 		int offsetOutputs = 1000;
-		int numiter = 3000;
+		int numiter = 20000;
 		
 		int noiseMargin = 10000;
 
@@ -195,7 +195,7 @@ void main()
 		}
 
 		Circuit * goldenCircuit = new Circuit(numScan, sizeScan, false);
-		Circuit * trojanCircuit = new Circuit(numScan, sizeScan, false);
+		Circuit * trojanCircuit = new Circuit(numScan, sizeScan, true);
 
 		
 		int secs1 = time(NULL);
