@@ -16,8 +16,13 @@ int measurePower(int var, int modVal)
 }
 
 double doSimulation(int numiter, bool doTimings, int timingIteration, int noiseMargin, Circuit * goldenCircuit, 
-				  Circuit * trojanCircuit, int numInitialResults, int * highestPowResults, unsigned long long ** highestPowScanChains, 
-				  bool printPower, int index)
+				  Circuit * trojanCircuit, 
+#ifdef DETAILEDRESULTS
+				  int numInitialResults, int * highestPowResults, unsigned long long ** highestPowScanChains,  
+#endif // DETAILEDRESULTS
+
+				  bool printPower, 
+				  int index)
 {
 	int secs1;
 	int secs2;
@@ -51,6 +56,7 @@ double doSimulation(int numiter, bool doTimings, int timingIteration, int noiseM
 
 		int minIndex = -1;
 
+#ifdef DETAILEDRESULTS
 		for (int numResultsIndex = 0; numResultsIndex < numInitialResults; numResultsIndex++)
 		{
 			int powResult = highestPowResults[numResultsIndex];
@@ -69,7 +75,9 @@ double doSimulation(int numiter, bool doTimings, int timingIteration, int noiseM
 			}
 			highestPowScanChains[minIndex] = goldenCircuit->getScanChainVals();
 
-		}
+		}  
+#endif // DETAILEDRESULTS
+
 
 		//bool trojanDetected = (trojanPower != goldenPower);
 		//string printString = "";//trojanDetected ? "Trojan Detected" : "Trojan Not Detected";
@@ -223,11 +231,17 @@ void main()
 
 		//SIMULATION PORTION
 		double average = doSimulation(numiter, doTimings, timingIteration, noiseMargin, goldenCircuit, 
-				  trojanCircuit, numInitialResults, highestPowResults, highestPowScanChains, printPower,
+				  trojanCircuit, 
+#ifdef DETAILEDRESULTS
+				  numInitialResults, highestPowResults, highestPowScanChains,  
+#endif // DETAILEDRESULTS
+
+				  printPower,
 				  -1);
 		
 		cout << average << endl;
-
+		
+#ifdef DETAILEDRESULTS
 		int highestPowIndex = -1;
 		int highestPowVal = 0;
 		for (int i = 0; i < numInitialResults; i++)
@@ -243,7 +257,7 @@ void main()
 
 		double maxAverage = 0;
 		int maxScanChain = -1;
-
+		
 		for (int i = 0; i < goldenCircuit->getNumScanChains(); i++)
 		{
 			//int * nextHighestPowResults = new int[numInitialResults];
@@ -335,6 +349,7 @@ void main()
 				cout << endl;
 			} 
 		}
+#endif // DETAILEDRESULTS
 
 
 		delete highestPowResults;
