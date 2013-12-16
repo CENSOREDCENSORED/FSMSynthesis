@@ -37,10 +37,15 @@ double doSimulation(int numiter, bool doTimings, int timingIteration, int noiseM
 		//Pseudorandom normal distrubtion
 		int noiseTrojan = 0; 
 		int noiseGolden = 0;
-		for (int i = 0; i < 16; i++)
+
+		if (noiseMargin > 0)
 		{
-			noiseTrojan += (rand() % (2*noiseMargin+1)) - noiseMargin;
-			noiseGolden += (rand() % (2*noiseMargin+1)) - noiseMargin;
+			for (int i = 0; i < 16; i++)
+			{
+
+				noiseTrojan += (rand() % (2*noiseMargin+1)) - noiseMargin;
+				noiseGolden += (rand() % (2*noiseMargin+1)) - noiseMargin;
+			} 
 		}
 
 		noiseTrojan /= 16;
@@ -186,7 +191,7 @@ void main()
 		int offsetOutputs = 1000;
 		int numiter = 20000;
 		
-		int noiseMargin = 10000;
+		int noiseMargin = 0;
 
 		int numScan = 20;
 		int sizeScan = 10;
