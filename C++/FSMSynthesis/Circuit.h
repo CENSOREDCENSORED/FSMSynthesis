@@ -22,8 +22,10 @@ public:
 	~Circuit();
 
 	int SimulateStep();
-	void seedScanChains(unsigned long long * seeds = 0, int numSeeds = 0);
-	int genNextPowerMeasurement(int scanChainIncrementIndex = -1);
+	void seedScanChains(unsigned long long * seeds = 0, int numSeeds = 0, int numAdvances = 0);
+	int genNextPowerMeasurement(int scanChainIncrementIndex = -1, bool partition = false,
+		int numPartitionGroups = 0, int numPartitions = 0, int partitionSize = 0, int currPartitionGroup = 0,
+		bool printPartitionGroups = false);
 	int genAdder(int, int);
 	int genComparator(int, int);
 	int genMux(int, int, int);

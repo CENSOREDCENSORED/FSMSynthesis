@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <time.h>
+#include <windows.h>
 #include "Circuit.h"
 #define _CRTDBG_MAP_ALLOC
 
@@ -15,6 +16,12 @@ int measurePower(int var, int modVal)
 	return (rand() % modVal) + modVal;
 }
 
+//Prints if the test has actually triggered the trojan only once
+bool printDifferenceDetected = true;
+
+//Prints the partition groups only once
+bool printPartitionGroups = true;
+
 double doSimulation(int numiter, bool doTimings, int timingIteration, int noiseMargin, Circuit * goldenCircuit, 
 				  Circuit * trojanCircuit, 
 #ifdef DETAILEDRESULTS
@@ -22,7 +29,8 @@ double doSimulation(int numiter, bool doTimings, int timingIteration, int noiseM
 #endif // DETAILEDRESULTS
 
 				  bool printPower, 
-				  int index)
+				  bool partition, int index, 
+				  int numPartitionGroups, int numPartitions, int partitionSize, int currPartitionGroup)
 {
 	int secs1;
 	int secs2;
@@ -51,10 +59,20 @@ double doSimulation(int numiter, bool doTimings, int timingIteration, int noiseM
 		noiseTrojan /= 16;
 		noiseGolden /= 16;
 
-		int goldenPower = goldenCircuit->genNextPowerMeasurement(index) + noiseGolden;
+		int goldenPowerNoNoise = goldenCircuit->genNextPowerMeasurement(index, partition,
+			numPartitionGroups, numPartitions, partitionSize, currPartitionGroup,printPartitionGroups);
+		int goldenPower = goldenPowerNoNoise + noiseGolden;
 		goldenPower = goldenPower < 0 ? 0 : goldenPower;
-		int trojanPower = trojanCircuit->genNextPowerMeasurement(index) + noiseTrojan;
+		printPartitionGroups = false;
+		int trojanPowerNoNoise = trojanCircuit->genNextPowerMeasurement(index, partition,
+			numPartitionGroups, numPartitions, partitionSize, currPartitionGroup,printPartitionGroups);
+		int trojanPower = trojanPowerNoNoise + noiseTrojan;
 		trojanPower = trojanPower < 0 ? 0 : trojanPower;
+		if ((goldenPowerNoNoise - trojanPowerNoNoise) != 0 && printDifferenceDetected)
+		{
+			cout << "difference!" << endl;
+			printDifferenceDetected = false;
+		}
 
 		int difference = trojanPower - goldenPower;
 		totalSum += difference;
@@ -117,6 +135,7 @@ void main()
 	//booleans
 	bool testRandNumGen = false;
 	bool testFSM = false;
+	bool testPartitioning = false;
 	bool testPowAnalysis = true;
 	bool seeOutput = true;
 
@@ -178,26 +197,53 @@ void main()
 		delete FSM;
 	}
 
+	if (testPartitioning)
+	{
+		int B = 5;
+		int S = 5;
+		int numScanCellsInPartition = 5;
+		for (int c = 0; c < B; c++)
+		{
+			for (int b = 0; b < S; b++)
+			{
+				for (int i = 0; i < numScanCellsInPartition; i++)
+				{
+					int partition = i*B + ((b + c*i) % B);
+					cout << partition;
+					if (i < (numScanCellsInPartition - 1)) cout << ",";
+				}
+				cout << "|";
+			}
+			cout << endl;
+		}
+	}
+
 	if (testPowAnalysis)
 	{
 		bool doTimings = false;
 		int timingIteration = 100;
 		bool printPower = false;
 		bool printMaxScanChains = false;
-
+		//0x52b24a62
+		//1387418449
+		//1387423210
 		seed = time(NULL);
+
+		cout << "Seed is " << seed << endl;
+
 		int baseGates = 1000;
 		int offsetGates = 1000;
 		int offsetOutputs = 1000;
 		int numiter = 20000;
 		
-		int noiseMargin = 0;
+		int noiseMargin = 10;
 
-		int numScan = 20;
+		int numScan = 25;
 		int sizeScan = 10;
 
 		int numInitialResults = 100;
-
+		
+#ifdef DETAILEDRESULTS
 		int * highestPowResults = new int[numInitialResults];
 		unsigned long long ** highestPowScanChains = new unsigned long long * [numInitialResults];
 
@@ -206,6 +252,7 @@ void main()
 			highestPowResults[i] = 0;
 			highestPowScanChains[i] = 0;
 		}
+#endif
 
 		Circuit * goldenCircuit = new Circuit(numScan, sizeScan, false);
 		Circuit * trojanCircuit = new Circuit(numScan, sizeScan, true);
@@ -223,28 +270,53 @@ void main()
 		cout << "Generated in " << secs2 - secs1 << " seconds. Trojan Circuit ";
 		trojanCircuit->printNumGates();
 
-		secs1 = time(NULL);
-		goldenCircuit->seedScanChains();
-		secs2 = time(NULL);
-		cout << "Golden circuit seeded in " << secs2 - secs1 << " seconds." << endl;
-		
-		secs1 = time(NULL);
-		trojanCircuit->seedScanChains();
-		secs2 = time(NULL);
-		cout << "Trojan circuit seeded in " << secs2 - secs1 << " seconds." << endl;
+		unsigned long long * scanChainSeeds = new unsigned long long[numScan];
+		for (unsigned long long i = 0; i < numScan; i++)
+		{
+			scanChainSeeds[i] = i;
+		}
 
+		//trojanCircuit->printGates();
 
 		//SIMULATION PORTION
-		double average = doSimulation(numiter, doTimings, timingIteration, noiseMargin, goldenCircuit, 
-				  trojanCircuit, 
-#ifdef DETAILEDRESULTS
-				  numInitialResults, highestPowResults, highestPowScanChains,  
-#endif // DETAILEDRESULTS
+		bool partition = true;
+		int numPartitionGroups = 5;
+		int numPartitions = 5;
+		int partitionSize = 5;
+		int currPartitionGroup = 0;
+		int currRun = 0;
 
-				  printPower,
-				  -1);
+		//TODO: Nest additional for loops
+		//for (int currRun = 0; currRun < 10; currRun++)
+		for (int currPartitionGroup = 0; currPartitionGroup < numPartitionGroups; currPartitionGroup++)
+		{
+			for (int currPartition = 0; currPartition < numPartitions; currPartition++)
+			{
+				srand(time(NULL));
+				secs1 = time(NULL);
+				goldenCircuit->seedScanChains(scanChainSeeds, numScan, currRun);
+				secs2 = time(NULL);
+				cout << "Golden circuit seeded in " << secs2 - secs1 << " seconds." << endl;
 		
-		cout << average << endl;
+				secs1 = time(NULL);
+				trojanCircuit->seedScanChains(scanChainSeeds, numScan, currRun);
+				secs2 = time(NULL);
+				cout << "Trojan circuit seeded in " << secs2 - secs1 << " seconds." << endl;
+			
+				//TODO: Make these not global variables
+				printPartitionGroups = true;
+				printDifferenceDetected = false;
+				double average = doSimulation(numiter, doTimings, timingIteration, noiseMargin, goldenCircuit, 
+						  trojanCircuit, 
+	#ifdef DETAILEDRESULTS
+						  numInitialResults, highestPowResults, highestPowScanChains,  
+	#endif // DETAILEDRESULTS
+						  printPower,
+						  partition, currPartition,numPartitionGroups,numPartitions,partitionSize,currPartitionGroup);
+		
+				cout << average << endl;
+			}
+		}
 		
 #ifdef DETAILEDRESULTS
 		int highestPowIndex = -1;
@@ -354,7 +426,6 @@ void main()
 				cout << endl;
 			} 
 		}
-#endif // DETAILEDRESULTS
 
 
 		delete highestPowResults;
@@ -364,177 +435,21 @@ void main()
 			if (highestPowScanChains[i] != 0) delete highestPowScanChains[i];
 		}
 		delete highestPowScanChains;
+#endif // DETAILEDRESULTS
+
+		delete scanChainSeeds;
 
 		delete goldenCircuit;
 		delete trojanCircuit;
 
-		/*ScanChain * sc = new ScanChain(10);
-		sc->initScanChain(1);
-		for (int i = 0; i < 10; i++)
-		{
-			sc->printScanChain();
-			sc->incrementScanChain();
-			cout << endl;
-		}
-
-
-		delete sc;*/
-
-		/*seed = 120;
-		srand(seed);
-		int step = 2;
-
-		for (int thingy = 0; thingy < 2; thingy++)
-		{
-			//srand(seed);
-
-			//Parameters
-			int trojanLength = 10;
-			int sideChannelPowerOffset = 1;
-			int noiseMargin = 8000;
-			int powerMargin = 5000;
-			int numiter = 20000;
-			int numScanChains = 1;
-
-			bool hasTrojan = thingy & 1;//rand() % 2;
-
-			ofstream myfile;
-			string filename = "";
-			if (!hasTrojan) filename.append("No");
-			filename.append("TrojanResults");
-
-			ostringstream convert;
-			convert << thingy/2;
-			filename.append(convert.str());
-
-			filename.append(".csv");
-			myfile.open(filename);
-
-			int * trojanSeq = new int[trojanLength];
-			int * trojanIndex = new int[trojanLength];
-			int * trojanScan = new int[trojanLength];
-			int * scanChainIndex = new int[trojanLength];
-			for (int i = 0; i < trojanLength; i++)
-			{
-				trojanSeq[i] = rand() % 2;
-				trojanIndex[i] = rand() % trojanLength;
-				trojanScan[i] = rand() % numScanChains;
-				scanChainIndex[i] = rand() % 4;
-				cout << scanChainIndex[i] << "," << trojanSeq[i] << "," << trojanIndex[i] << endl;
-			}
-			cout << "--------------" << endl;
-			RandNumGenerator * sc1 = new RandNumGenerator(0x481 >> 1);
-			RandNumGenerator * sc2 = new RandNumGenerator(0x481 >> 1);
-			RandNumGenerator * sc3 = new RandNumGenerator(0x481 >> 1);
-			RandNumGenerator * sc4 = new RandNumGenerator(0x481 >> 1);
-			sc1->seedRandNumGen(1);
-			sc2->seedRandNumGen(2);
-			sc3->seedRandNumGen(3);
-			sc4->seedRandNumGen(4);
-			int count = 0;
-
-			srand(time(NULL));
-
-			for (int i = 0; i < numiter; i++)
-			{
-				//Pseudorandom normal distrubtion
-				int noiseTrojan = 0; 
-				int noiseGolden = 0;
-				for (int i = 0; i < 16; i++)
-				{
-					noiseTrojan += (rand() % (2*noiseMargin+1)) - noiseMargin;
-					noiseGolden += (rand() % (2*noiseMargin+1)) - noiseMargin;
-				}
-
-				noiseTrojan /= 16;
-				noiseGolden /= 16;
-
-				//input test vector via lfsr
-				int var1 = sc1->genRandNum();
-				int var2 = sc2->genRandNum();
-				int var3 = sc3->genRandNum();
-				int var4 = sc4->genRandNum();
-
-				if (step == 2)
-				{
-					var1 = 920;
-					var2 = 945;
-					var3 = 41;
-					//var4 = 995;
-				}
-
-				int powerMeasurement = measurePower(var1, powerMargin);
-				int powerMeasurementGolden = powerMeasurement;
-				powerMeasurement += noiseTrojan;
-				powerMeasurementGolden += noiseGolden;
-
-				bool trojIndex = false; 
-				int scIndex = scanChainIndex[count];
-				int var = var1;
-				switch(scIndex)
-				{
-				case 0:
-					var = var1; 
-					break;
-				case 1:
-					var = var2;
-					break;
-				case 2:
-					var = var3;
-					break;
-				case 3:
-					var = var4;
-					break;
-				default:
-					var = var1;
-					break;
-				}
-
-				if (hasTrojan && (((var >> trojanIndex[count]) & 1) == trojanSeq[count]))
-				{
-					count++;
-					powerMeasurement += sideChannelPowerOffset;
-					trojIndex = true;
-				}
-				else 
-				{
-					count = 0;
-				}
-
-				bool trojanPrediction = false;//(powerMeasurement - powerMeasurementGolden) > (sideChannelPowerOffset + noiseMargin/10);
-
-				//cout << var << "," << powerMeasurement << "," << powerMeasurementGolden << "," << trojIndex 
-				//	<< "," << trojanPrediction << endl;
-
-				myfile << "," << powerMeasurement << "," << powerMeasurementGolden << "," << trojIndex 
-					<< "," << trojanPrediction << ",";
-
-				myfile << "=A" << i+1 << "*B" << i+1 << ",";
-				myfile << "=A" << i+1 << "*C" << i+1 << ",";
-				myfile << "=B" << i+1 << "-C" << i+1 << ",";
-				myfile << var1 << "," << var2 << "," << var3 << "," << var4 << ",";
-				myfile << endl;
-			}
-
-			myfile << "=AVERAGE(A1:A" << numiter << "),=AVERAGE(B1:B" << numiter << "),=AVERAGE(C1:C" << numiter << "),,,=AVERAGE(F1:F" << numiter << ")," 
-				<< "=AVERAGE(G1:G" << numiter << "),";
-			
-			myfile << endl;
-
-			myfile << ",=(-(A" << numiter+1 << "*B" << numiter+1 << ")+F" << numiter+1 << ")/(STDEV(A1:A" << numiter << ")*STDEV(B1:B" << numiter << ")),";
-			myfile << "=(-(A" << numiter+1 << "*C" << numiter+1 << ")+G" << numiter+1 << ")/(STDEV(A1:A" << numiter << ")*STDEV(C1:C" << numiter << ")),";
-			myfile << endl;
-
-			delete scanChainIndex;
-			delete trojanSeq;
-			delete trojanIndex;
-			delete trojanScan;
-
-			myfile.close();
-		}*/
+		
 	}
 
 	_CrtDumpMemoryLeaks();
 
-	if (seeOutput) while (true){}
+	if (seeOutput)
+	{
+		cout << "Done" << endl;
+		while (true){Sleep(1000);}
+	}
 }

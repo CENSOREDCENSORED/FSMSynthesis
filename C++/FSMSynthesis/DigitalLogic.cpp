@@ -7,6 +7,8 @@ Wire::Wire()
 	myNewVal = 0;
 	isOutput = true;
 	isInput = true;
+	prob0 = 0.5;
+	prob1 = 0.5;
 }
 
 Wire::~Wire()
@@ -26,6 +28,26 @@ void Wire::advanceVal()
 unsigned char Wire::getVal()
 {
 	return myVal;
+}
+
+double Wire::getProb0()
+{
+	return prob0;
+}
+
+double Wire::getProb1()
+{
+	return prob1;
+}
+
+void Wire::setProb0(double newProb)
+{
+	prob0 = newProb;
+}
+
+void Wire::setProb1(double newProb)
+{
+	prob1 = newProb;
 }
 
 void Wire::setName(string name)
@@ -80,6 +102,21 @@ bool NandGate::genOutput()
 	unsigned char origOut = myOut->getVal();
 	myOut->setVal((1 ^ (myIn1->getVal() & myIn2->getVal())) & 1);
 	return origOut != myOut->getNewVal();
+}
+
+void NandGate::propagateProbs()
+{
+	double newProb0 = myIn1->getProb1() * myIn2->getProb1();
+
+	if (myIn1 == myIn2) 
+	{
+		newProb0 = myIn1->getProb0();
+	}
+
+	double newProb1 = 1 - newProb0;
+
+	myOut->setProb0(newProb0);
+	myOut->setProb1(newProb1);
 }
 
 Wire * NandGate::getOut()

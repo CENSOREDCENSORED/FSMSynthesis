@@ -83,10 +83,10 @@ int Circuit::SimulateStep()
 	return numSwitches;
 }
 
-void Circuit::seedScanChains(unsigned long long * seeds, int numSeeds)
+void Circuit::seedScanChains(unsigned long long * seeds, int numSeeds, int numAdvances)
 {
 	//Initialization Step
-	if (seeds == 0)
+	if (seeds == 0 || numSeeds == 0)
 	{
 		for (int i = 0; i < myNumScan; i++)
 		{
@@ -99,19 +99,46 @@ void Circuit::seedScanChains(unsigned long long * seeds, int numSeeds)
 		{
 			myScanChainArr[i]->seedScanChain(seeds[i]);
 		}
+		for (int i = numSeeds; i < myNumScan; i++)
+		{
+			myScanChainArr[i]->seedScanChain(seeds[i]);
+		}
 	}
 	//Allow values to reach combinational steady state.
 	//cout << SimulateStep() << endl;
 	SimulateStep();
 }
 
-int Circuit::genNextPowerMeasurement(int scanChainIncrementIndex)
+int Circuit::genNextPowerMeasurement(int scanChainIncrementIndex, 
+									 bool partition, 
+									 int numPartitionGroups, int numPartitions, int partitionSize, int currPartitionGroup,
+									 bool printPartitionGroups)
 {
 	int numSwitches = 0;
 
 	if (scanChainIncrementIndex > -1)
 	{
-		numSwitches += myScanChainArr[scanChainIncrementIndex]->incrementScanChain();
+		if (partition)
+		{
+			int B = numPartitionGroups;
+			int S = numPartitions;
+			int numScanChainsInPartition = partitionSize;
+			int c = currPartitionGroup;
+			int b = scanChainIncrementIndex;
+			
+			for (int i = 0; i < numScanChainsInPartition; i++)
+			{
+				int partition = i*B + ((b + c*i) % B);
+				if (printPartitionGroups) cout << partition;
+				numSwitches += myScanChainArr[partition]->incrementScanChain();
+				if (printPartitionGroups && (i < (numScanChainsInPartition - 1))) cout << ",";
+			}
+			if (printPartitionGroups) cout << endl;
+		}
+		else
+		{
+			numSwitches += myScanChainArr[scanChainIncrementIndex]->incrementScanChain();
+		}
 	}
 	else
 	{
@@ -314,8 +341,8 @@ int Circuit::addANDGate(Wire * in1, Wire * in2, Wire * out, int baseWireIndex)
 
 	Wire * nandOut = genWireNonInput();
 
-	addNANDGate(in1,in2,nandOut,bwi++);
-	addNANDGate(nandOut,nandOut,out,bwi++);
+	bwi = addNANDGate(in1,in2,nandOut,bwi);
+	bwi = addNANDGate(nandOut,nandOut,out,bwi);
 
 	return bwi;
 
@@ -356,6 +383,14 @@ int Circuit::addNANDGate(Wire * in1, Wire * in2, Wire * out, int baseWireIndex)
 	myNonSCWires.push_back(out);
 	myGates.push_back(nandGate);
 
+	//Debug Statement
+	/*if (myGates.size() != baseWireIndex+1) 
+	{
+		cout << "WAWELRKASJDFL" << endl; 
+	}*/
+
+	nandGate->propagateProbs();
+
 	return baseWireIndex + 1;
 }
 
@@ -380,7 +415,7 @@ void Circuit::genRandomCircuit(int seed, unsigned int baseGates,
 
 	int numOutputs = myWires.size() + (rand() % offsetOutputs);
 
-	for (int i = 0; i < numiter; i++)
+	for (int i = 0; i < numiter; i = i)
 	{
 		//10% chance of making an adder, MUX, or comparator
 		int genAlternateCircuit = rand() % 30;
@@ -408,7 +443,7 @@ void Circuit::genRandomCircuit(int seed, unsigned int baseGates,
 			int input2 = rand() % numWires;
 			Wire * output = genWireNonInput();
 
-			addNANDGate(myWires.at(input1), myWires.at(input2), output, i);
+			i = addNANDGate(myWires.at(input1), myWires.at(input2), output, i);
 		}
 		
 	}
@@ -419,11 +454,34 @@ void Circuit::genRandomCircuit(int seed, unsigned int baseGates,
 		//assume between 10-19 steps to activate trojan
 		
 		int numWires = myWires.size();
-		int input1 = rand() % numWires;
-		int input2 = rand() % numWires;
-		Wire * output = genWireNonInput();
+		int input1Index = 0;
+		
+		double maxProb = 0.5;
+		for (int i = 0; i < numWires; i++)
+		{
+			Wire * wire = myWires.at(i);
+			double prob0 = wire->getProb0();
+			double prob1 = wire->getProb1();
+			if (prob1 > maxProb) 
+			{
+				maxProb = prob1;
+				input1Index = i;
+			}
+			if (prob0 > maxProb) 
+			{
+				maxProb = prob0;
+				input1Index = i;
+			}
+		}
+		Wire * input1 = myWires.at(input1Index);
+		cout << "Trojan trigger probabilities for wire " << input1->getName() << ": " << endl;
+		cout << "0: " << input1->getProb0() << ", 1: " << input1->getProb1() << endl;
 
-		addNANDGate(myWires.at(input1), myWires.at(input2), output, numiter);
+		Wire * output1 = genWireNonInput();
+		Wire * output2 = genWireNonInput();
+		numiter = myGates.size();
+		numiter = addNANDGate(input1, input1, output1, numiter);
+		numiter = addNANDGate(output1, output1, output2, numiter);
 
 		/*trojanIteration = 0;
 		int numTrojanIterations = (rand() % 10) + 10;

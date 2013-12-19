@@ -11,6 +11,8 @@ private:
 	string myName;
 	bool isOutput;
 	bool isInput;
+	double prob0;
+	double prob1;
 
 public:
 	Wire();
@@ -20,6 +22,11 @@ public:
 	unsigned char getVal();
 	void advanceVal();
 	unsigned char getNewVal();
+
+	double getProb0();
+	double getProb1();
+	void setProb0(double);
+	void setProb1(double);
 
 	void setName(string );
 	string getName();
@@ -39,6 +46,7 @@ public:
 	NandGate(Wire*, Wire*, Wire*);
 	~NandGate();
 	bool genOutput();
+	void propagateProbs();
 
 	Wire* getOut();
 	Wire* getIn1();
