@@ -129,8 +129,9 @@ int Circuit::genNextPowerMeasurement(int scanChainIncrementIndex,
 			for (int i = 0; i < numScanChainsInPartition; i++)
 			{
 				int partition = i*B + ((b + c*i) % B);
-				if (printPartitionGroups) cout << partition;
 				numSwitches += myScanChainArr[partition]->incrementScanChain();
+
+				if (printPartitionGroups) cout << partition;
 				if (printPartitionGroups && (i < (numScanChainsInPartition - 1))) cout << ",";
 			}
 			if (printPartitionGroups) cout << endl;

@@ -286,6 +286,10 @@ void main()
 		int currPartitionGroup = 0;
 		int currRun = 0;
 
+		double * powResults = new double[numPartitionGroups * numPartitions];
+
+		//TODO: Output all this crap into a .csv file
+
 		//TODO: Nest additional for loops
 		//for (int currRun = 0; currRun < 10; currRun++)
 		for (int currPartitionGroup = 0; currPartitionGroup < numPartitionGroups; currPartitionGroup++)
@@ -296,12 +300,12 @@ void main()
 				secs1 = time(NULL);
 				goldenCircuit->seedScanChains(scanChainSeeds, numScan, currRun);
 				secs2 = time(NULL);
-				cout << "Golden circuit seeded in " << secs2 - secs1 << " seconds." << endl;
+				//cout << "Golden circuit seeded in " << secs2 - secs1 << " seconds." << endl;
 		
 				secs1 = time(NULL);
 				trojanCircuit->seedScanChains(scanChainSeeds, numScan, currRun);
 				secs2 = time(NULL);
-				cout << "Trojan circuit seeded in " << secs2 - secs1 << " seconds." << endl;
+				//cout << "Trojan circuit seeded in " << secs2 - secs1 << " seconds." << endl;
 			
 				//TODO: Make these not global variables
 				printPartitionGroups = true;
@@ -315,7 +319,11 @@ void main()
 						  partition, currPartition,numPartitionGroups,numPartitions,partitionSize,currPartitionGroup);
 		
 				cout << average << endl;
+				cout << endl;
+
+				powResults[currPartition + (currPartitionGroup*numPartitions)];
 			}
+			cout << "--------------------" << endl;
 		}
 		
 #ifdef DETAILEDRESULTS
@@ -437,12 +445,12 @@ void main()
 		delete highestPowScanChains;
 #endif // DETAILEDRESULTS
 
+
 		delete scanChainSeeds;
+		delete powResults;
 
 		delete goldenCircuit;
 		delete trojanCircuit;
-
-		
 	}
 
 	_CrtDumpMemoryLeaks();
