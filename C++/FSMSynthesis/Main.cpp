@@ -224,11 +224,25 @@ void main()
 		int timingIteration = 100;
 		bool printPower = false;
 		bool printMaxScanChains = false;
+		bool outputToFile = true;
+
 		//0x52b24a62
 		//1387418449
 		//1387423210
-		seed = time(NULL);
+		//1387428972
+		seed = 1387428972;//time(NULL);
 
+		ofstream powOutputfile;
+		if (outputToFile)
+		{
+			string fileName = "";
+			ostringstream convert;
+			convert << seed;
+			fileName.append(convert.str());
+			fileName.append("PowOutput.csv");
+			powOutputfile.open(fileName);
+		}
+		
 		cout << "Seed is " << seed << endl;
 
 		int baseGates = 1000;
@@ -273,7 +287,7 @@ void main()
 		unsigned long long * scanChainSeeds = new unsigned long long[numScan];
 		for (unsigned long long i = 0; i < numScan; i++)
 		{
-			scanChainSeeds[i] = i;
+			scanChainSeeds[i] = i+1;
 		}
 
 		//trojanCircuit->printGates();
@@ -283,47 +297,84 @@ void main()
 		int numPartitionGroups = 5;
 		int numPartitions = 5;
 		int partitionSize = 5;
-		int currPartitionGroup = 0;
-		int currRun = 0;
+		int totalRuns = 1024;
 
 		double * powResults = new double[numPartitionGroups * numPartitions];
 
 		//TODO: Output all this crap into a .csv file
-
-		//TODO: Nest additional for loops
-		//for (int currRun = 0; currRun < 10; currRun++)
-		for (int currPartitionGroup = 0; currPartitionGroup < numPartitionGroups; currPartitionGroup++)
+		for (int currRun = 0; currRun < totalRuns; currRun++)
 		{
-			for (int currPartition = 0; currPartition < numPartitions; currPartition++)
+			cout << "Curr run is " << currRun << endl;
+			if (outputToFile)
 			{
-				srand(time(NULL));
-				secs1 = time(NULL);
-				goldenCircuit->seedScanChains(scanChainSeeds, numScan, currRun);
-				secs2 = time(NULL);
-				//cout << "Golden circuit seeded in " << secs2 - secs1 << " seconds." << endl;
-		
-				secs1 = time(NULL);
-				trojanCircuit->seedScanChains(scanChainSeeds, numScan, currRun);
-				secs2 = time(NULL);
-				//cout << "Trojan circuit seeded in " << secs2 - secs1 << " seconds." << endl;
-			
-				//TODO: Make these not global variables
-				printPartitionGroups = true;
-				printDifferenceDetected = false;
-				double average = doSimulation(numiter, doTimings, timingIteration, noiseMargin, goldenCircuit, 
-						  trojanCircuit, 
-	#ifdef DETAILEDRESULTS
-						  numInitialResults, highestPowResults, highestPowScanChains,  
-	#endif // DETAILEDRESULTS
-						  printPower,
-						  partition, currPartition,numPartitionGroups,numPartitions,partitionSize,currPartitionGroup);
-		
-				cout << average << endl;
-				cout << endl;
-
-				powResults[currPartition + (currPartitionGroup*numPartitions)];
+				powOutputfile << "Run " << currRun << endl;
 			}
-			cout << "--------------------" << endl;
+
+			for (int currPartitionGroup = 0; currPartitionGroup < numPartitionGroups; currPartitionGroup++)
+			{
+				cout << "Curr partition group is " << currPartitionGroup << endl;
+				for (int currPartition = 0; currPartition < numPartitions; currPartition++)
+				{
+					cout << "Curr partition is " << currPartition << endl;
+					int B = numPartitionGroups;
+					int S = numPartitions;
+					int numScanChainsInPartition = partitionSize;
+					int c = currPartitionGroup;
+					int b = currPartition;
+			
+					for (int i = 0; i < numScanChainsInPartition; i++)
+					{
+						int partition = i*B + ((b + c*i) % B);
+
+						if (outputToFile) powOutputfile << partition;
+						if (outputToFile && (i < (numScanChainsInPartition - 1))) powOutputfile << ",";
+					}
+					if (outputToFile) powOutputfile << "\t";
+
+					srand(time(NULL));
+					secs1 = time(NULL);
+					goldenCircuit->seedScanChains(scanChainSeeds, numScan, currRun);
+					secs2 = time(NULL);
+					//cout << "Golden circuit seeded in " << secs2 - secs1 << " seconds." << endl;
+		
+					secs1 = time(NULL);
+					trojanCircuit->seedScanChains(scanChainSeeds, numScan, currRun);
+					secs2 = time(NULL);
+					//cout << "Trojan circuit seeded in " << secs2 - secs1 << " seconds." << endl;
+			
+					//TODO: Make these not global variables
+					printPartitionGroups = true;
+					printDifferenceDetected = true;
+					double average = doSimulation(numiter, doTimings, timingIteration, noiseMargin, goldenCircuit, 
+							  trojanCircuit, 
+		#ifdef DETAILEDRESULTS
+							  numInitialResults, highestPowResults, highestPowScanChains,  
+		#endif // DETAILEDRESULTS
+							  printPower,
+							  partition, currPartition,numPartitionGroups,numPartitions,partitionSize,currPartitionGroup);
+		
+					cout << average << endl;
+					cout << endl;
+
+					powResults[currPartition + (currPartitionGroup*numPartitions)] = average;
+				}
+				cout << "--------------------" << endl;
+				if (outputToFile) powOutputfile << endl;
+			}
+
+			if (outputToFile)
+			{
+				for (int printIndexI = 0; printIndexI < numPartitionGroups; printIndexI++)
+				{
+					for (int printIndexJ = 0; printIndexJ < numPartitions; printIndexJ++)
+					{
+						powOutputfile << powResults[printIndexJ + (printIndexI*numPartitions)] << "\t";
+					}
+					powOutputfile << endl;
+				}
+
+				powOutputfile << endl;
+			}
 		}
 		
 #ifdef DETAILEDRESULTS
@@ -445,6 +496,10 @@ void main()
 		delete highestPowScanChains;
 #endif // DETAILEDRESULTS
 
+		if (outputToFile)
+		{
+			powOutputfile.close();
+		}
 
 		delete scanChainSeeds;
 		delete powResults;

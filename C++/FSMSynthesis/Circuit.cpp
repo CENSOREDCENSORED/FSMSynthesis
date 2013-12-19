@@ -104,6 +104,18 @@ void Circuit::seedScanChains(unsigned long long * seeds, int numSeeds, int numAd
 			myScanChainArr[i]->seedScanChain(seeds[i]);
 		}
 	}
+
+	//Increment scan chains to appropriate state
+	for (int i = 0; i < myNumScan; i++)
+	{
+		for (int j = 0; j < numAdvances; j++)
+		{
+			myScanChainArr[i]->incrementScanChain();
+		}
+		cout << myScanChainArr[i]->getCurrNum() << ",";
+	}
+	cout << endl;
+
 	//Allow values to reach combinational steady state.
 	//cout << SimulateStep() << endl;
 	SimulateStep();
