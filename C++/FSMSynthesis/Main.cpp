@@ -230,9 +230,10 @@ void main()
 		//1387418449
 		//1387423210
 		//1387428972
-		seed = 1387428972;//time(NULL);
+		seed = time(NULL);
 
 		ofstream powOutputfile;
+		ofstream runnableOutputFile;
 		if (outputToFile)
 		{
 			string fileName = "";
@@ -240,7 +241,18 @@ void main()
 			convert << seed;
 			fileName.append(convert.str());
 			fileName.append("PowOutput.csv");
+
 			powOutputfile.open(fileName);
+
+			string seedFileName = "";
+			seedFileName.append(convert.str());
+			seedFileName.append("Runnable.py");
+
+			runnableOutputFile.open(seedFileName);
+
+			runnableOutputFile << "from interpretData import interpretData" << endl << endl;
+			runnableOutputFile << "interpretData(" << seed << ")" << endl;
+			runnableOutputFile.close();
 		}
 		
 		cout << "Seed is " << seed << endl;
@@ -250,7 +262,7 @@ void main()
 		int offsetOutputs = 1000;
 		int numiter = 20000;
 		
-		int noiseMargin = 10;
+		int noiseMargin = 100;
 
 		int numScan = 25;
 		int sizeScan = 10;
@@ -297,9 +309,31 @@ void main()
 		int numPartitionGroups = 5;
 		int numPartitions = 5;
 		int partitionSize = 5;
-		int totalRuns = 1024;
+		int totalRuns = 50;
 
 		double * powResults = new double[numPartitionGroups * numPartitions];
+
+		for (int currPartitionGroup = 0; currPartitionGroup < numPartitionGroups; currPartitionGroup++)
+		{
+			for (int currPartition = 0; currPartition < numPartitions; currPartition++)
+			{
+				int B = numPartitionGroups;
+				int S = numPartitions;
+				int numScanChainsInPartition = partitionSize;
+				int c = currPartitionGroup;
+				int b = currPartition;
+				for (int i = 0; i < numScanChainsInPartition; i++)
+				{
+					int partition = i*B + ((b + c*i) % B);
+
+					if (outputToFile) powOutputfile << partition;
+					if (outputToFile && (i < (numScanChainsInPartition - 1))) powOutputfile << ",";
+				}
+				if (outputToFile) powOutputfile << "\t";
+			}
+			
+			if (outputToFile) powOutputfile << endl;
+		}
 
 		//TODO: Output all this crap into a .csv file
 		for (int currRun = 0; currRun < totalRuns; currRun++)
@@ -309,6 +343,7 @@ void main()
 			{
 				powOutputfile << "Run " << currRun << endl;
 			}
+			bool hasPrintedSeedsToFile = false; 
 
 			for (int currPartitionGroup = 0; currPartitionGroup < numPartitionGroups; currPartitionGroup++)
 			{
@@ -316,20 +351,6 @@ void main()
 				for (int currPartition = 0; currPartition < numPartitions; currPartition++)
 				{
 					cout << "Curr partition is " << currPartition << endl;
-					int B = numPartitionGroups;
-					int S = numPartitions;
-					int numScanChainsInPartition = partitionSize;
-					int c = currPartitionGroup;
-					int b = currPartition;
-			
-					for (int i = 0; i < numScanChainsInPartition; i++)
-					{
-						int partition = i*B + ((b + c*i) % B);
-
-						if (outputToFile) powOutputfile << partition;
-						if (outputToFile && (i < (numScanChainsInPartition - 1))) powOutputfile << ",";
-					}
-					if (outputToFile) powOutputfile << "\t";
 
 					srand(time(NULL));
 					secs1 = time(NULL);
@@ -341,6 +362,18 @@ void main()
 					trojanCircuit->seedScanChains(scanChainSeeds, numScan, currRun);
 					secs2 = time(NULL);
 					//cout << "Trojan circuit seeded in " << secs2 - secs1 << " seconds." << endl;
+
+					if (outputToFile && !hasPrintedSeedsToFile)
+					{
+						unsigned long long * scVals = goldenCircuit->getScanChainVals();
+						for (int scanIndex = 0; scanIndex < numScan; scanIndex++)
+						{
+							powOutputfile << std::hex << scVals[scanIndex] << ",";
+						}
+						powOutputfile << endl << std::dec;
+						hasPrintedSeedsToFile = true;
+						delete scVals;
+					}
 			
 					//TODO: Make these not global variables
 					printPartitionGroups = true;
@@ -359,7 +392,6 @@ void main()
 					powResults[currPartition + (currPartitionGroup*numPartitions)] = average;
 				}
 				cout << "--------------------" << endl;
-				if (outputToFile) powOutputfile << endl;
 			}
 
 			if (outputToFile)
