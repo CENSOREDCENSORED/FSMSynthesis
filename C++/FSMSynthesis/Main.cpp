@@ -232,6 +232,28 @@ void main()
 		//1387428972
 		seed = time(NULL);
 
+		cout << "Seed is " << seed << endl;
+
+		int baseGates = 1000;
+		int offsetGates = 1000;
+		int offsetOutputs = 1000;
+		int numiter = 20000;
+		
+		int noiseMargin = 100;
+
+		int numScan = 25;
+		int sizeScan = 10;
+
+		int numInitialResults = 100;
+
+		//SIMULATION PORTION
+		bool partition = true;
+		int numPartitionGroups = 5;
+		int numPartitions = 5;
+		int partitionSize = 5;
+		int totalRuns = 50;
+
+
 		ofstream powOutputfile;
 		ofstream runnableOutputFile;
 		if (outputToFile)
@@ -251,23 +273,13 @@ void main()
 			runnableOutputFile.open(seedFileName);
 
 			runnableOutputFile << "from interpretData import interpretData" << endl << endl;
-			runnableOutputFile << "interpretData(" << seed << ")" << endl;
+			runnableOutputFile << "interpretData(" << seed << 
+				"," << numPartitionGroups << 
+				"," << numScan << 
+				"," << sizeScan << 
+				")" << endl;
 			runnableOutputFile.close();
 		}
-		
-		cout << "Seed is " << seed << endl;
-
-		int baseGates = 1000;
-		int offsetGates = 1000;
-		int offsetOutputs = 1000;
-		int numiter = 20000;
-		
-		int noiseMargin = 100;
-
-		int numScan = 25;
-		int sizeScan = 10;
-
-		int numInitialResults = 100;
 		
 #ifdef DETAILEDRESULTS
 		int * highestPowResults = new int[numInitialResults];
@@ -303,13 +315,6 @@ void main()
 		}
 
 		//trojanCircuit->printGates();
-
-		//SIMULATION PORTION
-		bool partition = true;
-		int numPartitionGroups = 5;
-		int numPartitions = 5;
-		int partitionSize = 5;
-		int totalRuns = 50;
 
 		double * powResults = new double[numPartitionGroups * numPartitions];
 
