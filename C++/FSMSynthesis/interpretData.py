@@ -1,10 +1,12 @@
+import operator
+
 def interpretData(seed, numPartitionGroups, numScan, sizeScan):
     f = open(str(seed) + "PowOutput.csv", 'r')
     hasReadPartitions = False
     partitionlist = []
     scanChainValueList = []
+    powerListLine = []
     powerList = []
-    powerChunk = []
 
     runCount = 0
     scValCount = 0
@@ -18,15 +20,16 @@ def interpretData(seed, numPartitionGroups, numScan, sizeScan):
             if scValCount != 1 and not line.startswith("Run"):
                 #print "TODO: Handle the sc vals"
                 scValList = [line.strip().split(',')]
+                scValList[0].pop()
                 scanChainValueList += scValList
                 scValCount = 1
             elif powCount < numPartitionGroups:
                 powCount = powCount + 1
-                powerList += line.strip().split('\t')
+                powerListLine += line.strip().split('\t')
                 #print "TODO: Handle the power measurements"
             elif powCount == numPartitionGroups:
-                powerChunk += [powerList]
-                powerList = []
+                powerList += [powerListLine]
+                powerListLine = []
                 powCount = 0
                 scValCount = 0
                 runCount = 0
@@ -44,13 +47,31 @@ def interpretData(seed, numPartitionGroups, numScan, sizeScan):
                 partitionlist += [partitionSet]
 
     f.close()
-    
-    for iteration in powerChunk:
-        print "TODO: the rewards function"
-        
-    print partitionlist
-    #print scanChainValueList
-    #print powerChunk
-    print "Done"
+
+    rewardsList = genRewardsList(0.5, powerList, partitionlist, scanChainValueList)
+
+    rewardsList.sort(key=operator.itemgetter(0),reverse=True)
+
     
 
+    for x in rewardsList:
+        print x
+
+        
+    #print partitionlist
+    #print scanChainValueList
+    #print powerList
+    print "Done"
+    
+def genRewardsList(threshold, powerList, partitionlist, scanChainValueList):
+    rewardsList = []
+    for j in range(len(powerList)):
+        iteration = powerList[j]
+        #print "TODO: the rewards function"
+        for i in range(len(iteration)):
+            powVal = float(iteration[i])
+            if (powVal > threshold):
+                rewardsList += [[powVal, partitionlist[i], scanChainValueList[j]]]
+    
+    return rewardsList
+    
