@@ -52,12 +52,22 @@ def interpretData(seed, numPartitionGroups, numScan, sizeScan):
 
     rewardsList.sort(key=operator.itemgetter(0),reverse=True)
 
-    
+    scPowCountList = []
 
-    for x in rewardsList:
-        print x
+    for i in range(numScan):
+        scPowCountList += [[i,0]]
 
-        
+    for rewardsData in rewardsList:
+        #print rewardsData
+        scanChainVals = rewardsData[1]
+        for scVal in scanChainVals:
+            scPowCountList[int(scVal)][1] = scPowCountList[int(scVal)][1] + rewardsData[0]
+
+
+    scPowCountList.sort(key=operator.itemgetter(1),reverse=True)
+    for i in range(numScan):
+        print scPowCountList[i]
+       
     #print partitionlist
     #print scanChainValueList
     #print powerList
