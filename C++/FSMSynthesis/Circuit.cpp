@@ -124,7 +124,8 @@ void Circuit::seedScanChains(unsigned long long * seeds, int numSeeds, int numAd
 int Circuit::genNextPowerMeasurement(int scanChainIncrementIndex, 
 									 bool partition, 
 									 int numPartitionGroups, int numPartitions, int partitionSize, int currPartitionGroup,
-									 bool printPartitionGroups)
+									 bool printPartitionGroups,
+									 int * scanChainIncrementVals)
 {
 	int numSwitches = 0;
 
@@ -157,7 +158,10 @@ int Circuit::genNextPowerMeasurement(int scanChainIncrementIndex,
 	{
 		for (int i = 0; i < myNumScan; i++)
 		{
-			numSwitches += myScanChainArr[i]->incrementScanChain();
+			if (scanChainIncrementVals == nullptr)
+				numSwitches += myScanChainArr[i]->incrementScanChain();
+			else if (scanChainIncrementVals != nullptr && scanChainIncrementVals[i])
+				numSwitches += myScanChainArr[i]->incrementScanChain();
 		}
 	}
 	numSwitches += SimulateStep();
